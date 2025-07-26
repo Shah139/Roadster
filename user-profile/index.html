@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - Roadster</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-circle"></i>
+                </div>
+                <span>Roadster</span>
+            </div>
+            
+            <nav class="nav-menu">
+                <div class="nav-item" onclick="window.location.href='../dashboard/index.html'">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item" onclick="window.location.href='../maps/index.html'">
+                    <i class="fas fa-map"></i>
+                    <span>Interactive Map</span>
+                </div>
+                <div class="nav-item active">
+                    <i class="fas fa-user"></i>
+                    <span>User Profile</span>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-left">
+                    <button class="back-btn" onclick="window.location.href='../dashboard/index.html'">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Dashboard
+                    </button>
+                    <h1>User Profile</h1>
+                </div>
+                
+                <div class="header-right">
+                    <button class="action-btn">
+                        <i class="fas fa-save"></i>
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+
+            <!-- Profile Content -->
+            <div class="profile-content">
+                <!-- User Information Card -->
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <div class="profile-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="profile-info">
+                            <h2>John Cena</h2>
+                            <p class="profile-role">User</p>
+                        </div>
+                    </div>
+
+                    <!-- User ID Section -->
+                    <div class="profile-section">
+                        <h3>User Information</h3>
+                        <div class="form-group">
+                            <label for="userId">User ID</label>
+                            <input type="text" id="userId" value="USR-2024-001" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="userEmail">Email Address</label>
+                            <input type="email" id="userEmail" value="john.cena@company.com" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="userRole">Role</label>
+                            <select id="userRole" onchange="toggleDriverSection()">
+                                <option value="user">User</option>
+                                <option value="driver" selected>Driver</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Password Section -->
+                    <div class="profile-section">
+                        <h3>Change Password</h3>
+                        <div class="form-group">
+                            <label for="currentPassword">Current Password</label>
+                            <div class="password-input">
+                                <input type="password" id="currentPassword" placeholder="Enter current password">
+                                <button type="button" class="toggle-password" onclick="togglePassword('currentPassword')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="newPassword">New Password</label>
+                            <div class="password-input">
+                                <input type="password" id="newPassword" placeholder="Enter new password">
+                                <button type="button" class="toggle-password" onclick="togglePassword('newPassword')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirm New Password</label>
+                            <div class="password-input">
+                                <input type="password" id="confirmPassword" placeholder="Confirm new password">
+                                <button type="button" class="toggle-password" onclick="togglePassword('confirmPassword')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button class="change-password-btn">
+                            <i class="fas fa-key"></i>
+                            Update Password
+                        </button>
+                    </div>
+
+                    <!-- Driver Status Section -->
+                    <div class="profile-section" id="driverSection">
+                        <h3>Driver Status</h3>
+                        <div class="driver-status-info">
+                            <p>This user is registered as a driver in the system</p>
+                            <div class="driver-details">
+                                <div class="detail-item">
+                                    <span class="detail-label">License Number:</span>
+                                    <span class="detail-value">DL-2024-001</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Vehicle Assigned:</span>
+                                    <span class="detail-value">CAR-001</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="status-controls">
+                            <div class="status-label">Current Status:</div>
+                            <div class="status-buttons">
+                                <button class="status-btn free active" onclick="setDriverStatus('free')">
+                                    <i class="fas fa-check-circle"></i>
+                                    Free
+                                </button>
+                                <button class="status-btn occupied" onclick="setDriverStatus('occupied')">
+                                    <i class="fas fa-car"></i>
+                                    Occupied
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="status-info">
+                            <div class="status-item">
+                                <i class="fas fa-clock"></i>
+                                <span>Status changed: 2 hours ago</span>
+                            </div>
+                            <div class="status-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Current location: Downtown Area</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Settings -->
+                    <div class="profile-section">
+                        <h3>Settings</h3>
+                        <div class="settings-grid">
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h4>Email Notifications</h4>
+                                    <p>Receive notifications via email</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h4>SMS Alerts</h4>
+                                    <p>Receive alerts via SMS</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h4>Location Tracking</h4>
+                                    <p>Allow location tracking while on duty</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

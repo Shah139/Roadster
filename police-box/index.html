@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Police Box - Roadster</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-circle"></i>
+                </div>
+                <span>Roadster</span>
+            </div>
+            
+            <nav class="nav-menu">
+                <div class="nav-item" onclick="window.location.href='../dashboard/index.html'">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item" onclick="window.location.href='../maps/index.html'">
+                    <i class="fas fa-map"></i>
+                    <span>Interactive Map</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-user"></i>
+                    <span>User Profile</span>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <div class="city-title">
+                    <h1>New York City</h1>
+                    <p>Police Box Management System</p>
+                </div>
+                
+                <div class="header-right">
+                    <div class="user-profile">
+                        <div class="user-avatar"></div>
+                        <div class="user-info">
+                            <div class="user-name">Admin User</div>
+                            <div class="user-role">Police Supervisor</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Police Box Content -->
+            <div class="police-content">
+                <!-- Search and Filter Section -->
+                <div class="search-filter-section">
+                    <div class="search-container">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search police boxes..." id="searchInput">
+                    </div>
+                    <div class="filter-controls">
+                        <select class="filter-dropdown">
+                            <option value="all">All Districts</option>
+                            <option value="manhattan">Manhattan</option>
+                            <option value="brooklyn">Brooklyn</option>
+                            <option value="queens">Queens</option>
+                            <option value="bronx">Bronx</option>
+                        </select>
+                        <select class="filter-dropdown">
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="maintenance">Maintenance</option>
+                            <option value="offline">Offline</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="stats-overview">
+                    <div class="stat-card">
+                        <div class="stat-icon active">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>142</h3>
+                            <p>Active Boxes</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon maintenance">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>8</h3>
+                            <p>Under Maintenance</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon offline">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>3</h3>
+                            <p>Offline</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon total">
+                            <i class="fas fa-calculator"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>153</h3>
+                            <p>Total Boxes</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Police Box Grid -->
+                <div class="police-box-list">
+                    <!-- Police Box Item 1 -->
+                    <div class="police-box-item">
+                        <div class="box-basic-info">
+                            <span class="box-id">PB-001</span>
+                            <span class="box-name">Times Square Station</span>
+                        </div>
+                        <div class="box-location">Broadway & 42nd Street</div>
+                        <div class="box-status active">Active</div>
+                    </div>
+
+                    <!-- Police Box Item 2 -->
+                    <div class="police-box-item">
+                        <div class="box-basic-info">
+                            <span class="box-id">PB-002</span>
+                            <span class="box-name">Central Park North</span>
+                        </div>
+                        <div class="box-location">5th Ave & 110th Street</div>
+                        <div class="box-status active">Active</div>
+                    </div>
+
+                    <!-- Police Box Item 3 -->
+                    <div class="police-box-item">
+                        <div class="box-basic-info">
+                            <span class="box-id">PB-003</span>
+                            <span class="box-name">Brooklyn Bridge Plaza</span>
+                        </div>
+                        <div class="box-location">Cadman Plaza East</div>
+                        <div class="box-status maintenance">Maintenance</div>
+                    </div>
+
+                    <!-- Police Box Item 4 -->
+                    <div class="police-box-item">
+                        <div class="box-basic-info">
+                            <span class="box-id">PB-004</span>
+                            <span class="box-name">Queens Plaza</span>
+                        </div>
+                        <div class="box-location">Queens Blvd & 28th Street</div>
+                        <div class="box-status offline">Offline</div>
+                    </div>
+
+                    <!-- Police Box Item 5 -->
+                    <div class="police-box-item">
+                        <div class="box-basic-info">
+                            <span class="box-id">PB-005</span>
+                            <span class="box-name">Wall Street Plaza</span>
+                        </div>
+                        <div class="box-location">Wall Street & Broadway</div>
+                        <div class="box-status active">Active</div>
+                    </div>
+
+                    <!-- Police Box Item 6 -->
+                    <div class="police-box-item">
+                        <div class="box-basic-info">
+                            <span class="box-id">PB-006</span>
+                            <span class="box-name">Yankee Stadium</span>
+                        </div>
+                        <div class="box-location">161st Street & River Ave</div>
+                        <div class="box-status active">Active</div>
+                    </div>
+
+                    <!-- Police Box Item 7 -->
+                    <div class="police-box-item">
+                        <div class="box-basic-info">
+                            <span class="box-id">PB-007</span>
+                            <span class="box-name">Grand Central</span>
+                        </div>
+                        <div class="box-location">42nd Street & Park Ave</div>
+                        <div class="box-status active">Active</div>
+                    </div>
+
+                    <!-- Police Box Item 8 -->
+                    <div class="police-box-item">
+                        <div class="box-basic-info">
+                            <span class="box-id">PB-008</span>
+                            <span class="box-name">Empire State Building</span>
+                        </div>
+                        <div class="box-location">5th Ave & 34th Street</div>
+                        <div class="box-status maintenance">Maintenance</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

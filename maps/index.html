@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Map - Map Map</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-cog"></i>
+                    </div>
+                    <h1>Map</h1>
+                </div>
+            </div>
+            
+            <div class="header-center">
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search location" id="searchInput">
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <div class="user-avatar"></div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Left Sidebar -->
+            <div class="sidebar">
+                <div class="layer-section">
+                    <h3>Layer Legends</h3>
+                    
+                    <div class="layer-item">
+                        <div class="layer-header">
+                            <div class="layer-info">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <span>Crime Zones</span>
+                            </div>
+                            <div class="toggle-switch active" data-layer="crime-zones">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="layer-item">
+                        <div class="layer-header">
+                            <div class="layer-info">
+                                <i class="fas fa-th-large"></i>
+                                <span>Listen</span>
+                            </div>
+                            <div class="toggle-switch" data-layer="listen">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                        <div class="sub-item">
+                            <span class="color-indicator crime-severity"></span>
+                            <span>Crime Severity @cellular</span>
+                        </div>
+                        <div class="sub-item">
+                            <span>Legends</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="layer-section">
+                    <h3>Traffic Management</h3>
+                    
+                    <div class="layer-item">
+                        <div class="layer-header">
+                            <div class="layer-info">
+                                <i class="fas fa-video"></i>
+                                <span>CCTV Cameras</span>
+                            </div>
+                            <div class="toggle-switch active" data-layer="cctv">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="layer-item">
+                        <div class="layer-header">
+                            <div class="layer-info">
+                                <i class="fas fa-road"></i>
+                                <span>Congested Roads</span>
+                            </div>
+                            <div class="toggle-switch" data-layer="congested-roads">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="layer-item">
+                        <div class="layer-header">
+                            <div class="layer-info">
+                                <i class="fas fa-video"></i>
+                                <span>CCTV Coverage</span>
+                            </div>
+                            <div class="layer-legend">Legal</div>
+                        </div>
+                    </div>
+                    
+                    <div class="layer-item">
+                        <div class="layer-header">
+                            <div class="layer-info">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Police Stations</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Container -->
+            <div class="map-container">
+                <div id="map"></div>
+                
+                <!-- Map Legend -->
+                <div class="map-legend">
+                    <div class="legend-title">City Traffic Monitor</div>
+                    <div class="legend-subtitle">Legal Compliance</div>
+                    <div class="color-palette">
+                        <div class="color-box green"></div>
+                        <div class="color-box red"></div>
+                        <div class="color-box blue"></div>
+                        <div class="color-box dark-blue"></div>
+                        <div class="color-box gray"></div>
+                    </div>
+                    <div class="legend-subtitle">Terms & Conditions</div>
+                </div>
+            </div>
+
+            <!-- Road Details Modal -->
+            <div class="road-details-modal" id="roadDetailsModal">
+                <div class="modal-header">
+                    <h3>Road Details</h3>
+                    <button class="close-btn" id="closeModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-content">
+                    <div class="road-info">
+                        <h4>York Place Road</h4>
+                        <p class="road-subtitle">(Main Street)</p>
+                    </div>
+                    
+                    <div class="issue-section">
+                        <div class="issue-toggle">
+                            <span>Report Issue</span>
+                            <div class="toggle-switch">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn-secondary">Go to Details</button>
+                        <button class="btn-primary">Report Issue</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Assistant -->
+        <div class="ai-assistant">
+            <div class="ai-icon">
+                <span>ai</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
