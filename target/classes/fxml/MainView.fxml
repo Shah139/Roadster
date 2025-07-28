@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane fx:id="mainContainer" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+            fx:controller="com.roadster.controllers.MainController">
+    
+    <!-- Top Navigation Bar -->
+    <top>
+        <ToolBar fx:id="navigationBar" styleClass="navigation-toolbar">
+            <Button text="Login" onAction="#showLoginView" styleClass="nav-button"/>
+            <Button text="Dashboard" onAction="#showDashboardView" styleClass="nav-button"/>
+            <Button text="Drivers" onAction="#showDriversView" styleClass="nav-button"/>
+            <Button text="Maps" onAction="#showMapsView" styleClass="nav-button"/>
+            <Button text="Police Box" onAction="#showPoliceBoxView" styleClass="nav-button"/>
+            <Button text="Profile" onAction="#showUserProfileView" styleClass="nav-button"/>
+        </ToolBar>
+    </top>
+    
+    <!-- Center Content Area -->
+    <center>
+        <!-- This will be dynamically populated with different views -->
+        <VBox styleClass="content-area">
+            <Label text="Welcome to Roadster Application" styleClass="welcome-label"/>
+        </VBox>
+    </center>
+    
+    <!-- Bottom Status Bar -->
+    <bottom>
+        <HBox styleClass="status-bar">
+            <Label text="Ready" styleClass="status-label"/>
+        </HBox>
+    </bottom>
+    
+</BorderPane> 
