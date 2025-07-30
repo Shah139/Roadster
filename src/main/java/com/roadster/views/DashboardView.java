@@ -44,7 +44,7 @@ public class DashboardView extends HBox {
         searchField.setPromptText("Search");
 
         cityDropdown = new ComboBox<>();
-        cityDropdown.getItems().addAll("Chattogram", "Dhaka", "Rajshahi", "Khulna", "Sylhet", "Barisal", "Rangpur", "Mymensingh");
+        cityDropdown.getItems().addAll("All Districts", "Chattogram", "Dhaka", "Rajshahi", "Khulna", "Sylhet", "Barisal", "Rangpur", "Mymensingh");
         cityDropdown.setValue("City Location");
 
         // Charts
@@ -362,10 +362,10 @@ public class DashboardView extends HBox {
     private void handleNavigation(String destination) {
         System.out.println("Navigating to: " + destination);
         // TODO: Implement navigation to other views
-        if(destination == "Dashboard"){
-            mainController.showDashboardView();
-        }else if(destination == "User Profile"){
-            mainController.showUserProfileView();
+        if("police-box".equals(destination)){
+            mainController.showPoliceBoxView();
+        }else if("drivers-list".equals(destination)){
+            mainController.showDriversView();
         }
 
     }

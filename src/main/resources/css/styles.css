@@ -208,11 +208,6 @@
     -fx-cursor: hand;
 }
 
-.back-btn:hover {
-    -fx-text-fill: #2980b9;
-    -fx-underline: true;
-}
-
 .action-btn {
     -fx-background-color: #3498db;
     -fx-text-fill: white;

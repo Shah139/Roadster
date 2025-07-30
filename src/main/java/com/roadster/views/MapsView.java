@@ -12,23 +12,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Polygon;
-import javafx.scene.Node;
-import javafx.scene.effect.DropShadow;
-import javafx.scene.effect.BlurType;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.Group;
-import javafx.animation.Timeline;
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
-import javafx.util.Duration;
-import javafx.stage.Stage;
-import javafx.stage.Modality;
-import javafx.scene.Scene;
-
-/**
- * Maps View - JavaFX equivalent of maps
- * This will contain interactive map functionality and layer controls
- */
 public class MapsView extends VBox {
     private MainController mainController;
     private HBox header;
@@ -63,7 +47,7 @@ public class MapsView extends VBox {
         // Search field
         searchField = new TextField();
         searchField.setPromptText("Search location");
-        
+
         // Layer toggles
         crimeZonesToggle = new ToggleButton();
         crimeZonesToggle.setSelected(true);
@@ -198,7 +182,11 @@ public class MapsView extends VBox {
         sidebar.setPrefWidth(300);
         sidebar.setPadding(new Insets(20));
         sidebar.getStyleClass().add("sidebar");
-        
+
+        // Back to Dashboard button
+        Button backButton = new Button("← Back to Dashboard");
+        backButton.getStyleClass().add("back-btn");
+        backButton.setOnAction(e -> handleNavigation("Dashboard"));
         // Layer Legends Section
         VBox layerSection = createLayerSection("Layer Legends");
         
@@ -233,7 +221,7 @@ public class MapsView extends VBox {
         layerSection.getChildren().addAll(crimeZonesLayer, listenLayer);
         trafficSection.getChildren().addAll(cctvLayer, congestedLayer, cctvCoverageLayer, policeLayer);
         
-        sidebar.getChildren().addAll(layerSection, trafficSection);
+        sidebar.getChildren().addAll(backButton, layerSection, trafficSection);
         return sidebar;
     }
     
@@ -331,9 +319,7 @@ public class MapsView extends VBox {
         
         // Create map legend
         createMapLegend();
-        
-        // Create AI assistant
-        createAIAssistant();
+
         
         // Create road details modal
         createRoadDetailsModal();
@@ -510,28 +496,7 @@ public class MapsView extends VBox {
         
         mapLegend.getChildren().addAll(legendTitle, legendSubtitle, colorPalette, termsText);
     }
-    
-    private void createAIAssistant() {
-        aiAssistant.setPrefSize(60, 60);
-        aiAssistant.setLayoutX(20);
-        aiAssistant.setLayoutY(20);
-        
-        Circle aiCircle = new Circle(30);
-        aiCircle.setFill(Color.valueOf("#9b59b6"));
-        aiCircle.setEffect(new DropShadow(5, Color.valueOf("#8e44ad")));
-        
-        Text aiText = new Text("AI");
-        aiText.setFont(Font.font("Segoe UI", FontWeight.BOLD, 16));
-        aiText.setFill(Color.WHITE);
-        
-        StackPane aiPane = new StackPane(aiCircle, aiText);
-        aiPane.setAlignment(Pos.CENTER);
-        
-        aiAssistant.getChildren().add(aiPane);
-        
-        // Make AI assistant clickable
-        aiPane.setOnMouseClicked(e -> showAIAssistant());
-    }
+
     
     private void createRoadDetailsModal() {
         roadDetailsModal.setPrefSize(400, 300);
@@ -644,9 +609,10 @@ public class MapsView extends VBox {
     private void hideRoadDetails() {
         roadDetailsModal.setVisible(false);
     }
-    
-    private void showAIAssistant() {
-        System.out.println("AI Assistant activated");
-        // TODO: Implement AI assistant functionality
+
+    private void handleNavigation(String destination) {
+        System.out.println("Navigating to: " + destination);
+        // TODO: Implement navigation to other views
+        mainController.showDashboardView();
     }
 } 

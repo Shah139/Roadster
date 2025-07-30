@@ -1,5 +1,7 @@
 package com.roadster.views;
 
+import com.roadster.components.SideBar;
+import com.roadster.controllers.MainController;
 import javafx.scene.layout.*;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
@@ -19,7 +21,7 @@ import com.roadster.models.Driver;
  * This will contain driver management functionality
  */
 public class DriversView extends HBox {
-    
+    private MainController mainController;
     private VBox sidebar;
     private VBox mainContent;
     private TextField searchField;
@@ -28,7 +30,8 @@ public class DriversView extends HBox {
     private ObservableList<Driver> driversData;
     private FilteredList<Driver> filteredDrivers;
     
-    public DriversView() {
+    public DriversView(MainController mainController) {
+        this.mainController = mainController;
         initializeComponents();
         setupLayout();
         setupStyling();
@@ -58,7 +61,8 @@ public class DriversView extends HBox {
         setSpacing(0);
         
         // Sidebar
-        sidebar = createSidebar();
+        SideBar sideBarComponent = new SideBar(mainController);
+        sidebar = sideBarComponent.createSidebar();
         
         // Main content
         mainContent = createMainContent();
@@ -68,65 +72,8 @@ public class DriversView extends HBox {
         HBox.setHgrow(mainContent, Priority.ALWAYS);
     }
     
-    private VBox createSidebar() {
-        VBox sidebar = new VBox(30);
-        sidebar.setPrefWidth(250);
-        sidebar.setPadding(new Insets(20));
-        sidebar.getStyleClass().add("sidebar");
-        
-        // Logo
-        HBox logo = new HBox(12);
-        logo.setAlignment(Pos.CENTER_LEFT);
-        
-        Circle logoIcon = new Circle(20);
-        logoIcon.setFill(Color.valueOf("#3498db"));
-        
-        Text logoText = new Text("Roadster");
-        logoText.setFont(Font.font("Segoe UI", FontWeight.BOLD, 20));
-        logoText.setFill(Color.valueOf("#2c3e50"));
-        
-        logo.getChildren().addAll(logoIcon, logoText);
-        
-        // Navigation menu
-        VBox navMenu = new VBox(10);
-        
-        // Nav items
-        HBox dashboardItem = createNavItem("📊", "Dashboard", false);
-        HBox mapsItem = createNavItem("🗺️", "Interactive Map", false);
-        HBox driversItem = createNavItem("🚗", "Drivers", true);
-        HBox policeItem = createNavItem("👮", "Police Box", false);
-        HBox profileItem = createNavItem("👤", "User Profile", false);
-        
-        navMenu.getChildren().addAll(dashboardItem, mapsItem, driversItem, policeItem, profileItem);
-        
-        sidebar.getChildren().addAll(logo, navMenu);
-        return sidebar;
-    }
-    
-    private HBox createNavItem(String icon, String text, boolean isActive) {
-        HBox item = new HBox(12);
-        item.setAlignment(Pos.CENTER_LEFT);
-        item.setPadding(new Insets(12, 16, 12, 16));
-        item.setPrefHeight(50);
-        item.getStyleClass().add("nav-item");
-        
-        if (isActive) {
-            item.getStyleClass().add("active");
-        }
-        
-        Text iconText = new Text(icon);
-        iconText.setFont(Font.font(16));
-        
-        Text label = new Text(text);
-        label.setFont(Font.font("Segoe UI", 14));
-        
-        item.getChildren().addAll(iconText, label);
-        
-        // Add click handler
-        item.setOnMouseClicked(e -> handleNavigation(text));
-        
-        return item;
-    }
+
+
     
     private VBox createMainContent() {
         VBox mainContent = new VBox(20);
@@ -155,7 +102,7 @@ public class DriversView extends HBox {
         backButton.getStyleClass().add("back-btn");
         backButton.setOnAction(e -> handleNavigation("Dashboard"));
         
-        Text cityName = new Text("New York City");
+        Text cityName = new Text("Chattogram");
         cityName.setFont(Font.font("Segoe UI", FontWeight.BOLD, 24));
         cityName.setFill(Color.valueOf("#2c3e50"));
         
@@ -403,10 +350,11 @@ public class DriversView extends HBox {
         // Add driver button
         addDriverButton.setOnAction(e -> addNewDriver());
     }
-    
+
     private void handleNavigation(String destination) {
         System.out.println("Navigating to: " + destination);
         // TODO: Implement navigation to other views
+        mainController.showDashboardView();
     }
     
     private void addNewDriver() {

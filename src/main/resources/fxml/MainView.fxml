@@ -6,18 +6,7 @@
 
 <BorderPane fx:id="mainContainer" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
             fx:controller="com.roadster.controllers.MainController">
-    
-    <!-- Top Navigation Bar -->
-    <top>
-        <ToolBar fx:id="navigationBar" styleClass="navigation-toolbar">
-            <Button text="Login" onAction="#showLoginView" styleClass="nav-button"/>
-            <Button text="Dashboard" onAction="#showDashboardView" styleClass="nav-button"/>
-            <Button text="Drivers" onAction="#showDriversView" styleClass="nav-button"/>
-            <Button text="Maps" onAction="#showMapsView" styleClass="nav-button"/>
-            <Button text="Police Box" onAction="#showPoliceBoxView" styleClass="nav-button"/>
-            <Button text="Profile" onAction="#showUserProfileView" styleClass="nav-button"/>
-        </ToolBar>
-    </top>
+
     
     <!-- Center Content Area -->
     <center>

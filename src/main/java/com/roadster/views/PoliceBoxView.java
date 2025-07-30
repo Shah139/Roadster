@@ -1,5 +1,7 @@
 package com.roadster.views;
 
+import com.roadster.components.SideBar;
+import com.roadster.controllers.MainController;
 import javafx.scene.layout.*;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
@@ -9,17 +11,12 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.scene.shape.Rectangle;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 
-/**
- * Police Box View - JavaFX equivalent of police-box
- * This will contain police box management functionality
- */
 public class PoliceBoxView extends HBox {
-    
+    private MainController mainController;
     private VBox sidebar;
     private VBox mainContent;
     private TextField searchField;
@@ -29,7 +26,8 @@ public class PoliceBoxView extends HBox {
     private ObservableList<PoliceBox> policeBoxesData;
     private FilteredList<PoliceBox> filteredPoliceBoxes;
     
-    public PoliceBoxView() {
+    public PoliceBoxView(MainController mainController) {
+        this.mainController = mainController;
         initializeComponents();
         setupLayout();
         setupStyling();
@@ -44,7 +42,7 @@ public class PoliceBoxView extends HBox {
         
         // Filter dropdowns
         districtFilter = new ComboBox<>();
-        districtFilter.getItems().addAll("All Districts", "Manhattan", "Brooklyn", "Queens", "Bronx");
+        districtFilter.getItems().addAll("All Districts", "Chattogram", "Dhaka", "Rajshahi", "Khulna", "Sylhet", "Barisal", "Rangpur", "Mymensingh");
         districtFilter.setValue("All Districts");
         
         statusFilter = new ComboBox<>();
@@ -64,74 +62,14 @@ public class PoliceBoxView extends HBox {
         setSpacing(0);
         
         // Sidebar
-        sidebar = createSidebar();
-        
+        SideBar sideBarComponent = new SideBar(mainController);
+        sidebar = sideBarComponent.createSidebar();
         // Main content
         mainContent = createMainContent();
         
         getChildren().addAll(sidebar, mainContent);
         HBox.setHgrow(sidebar, Priority.NEVER);
         HBox.setHgrow(mainContent, Priority.ALWAYS);
-    }
-    
-    private VBox createSidebar() {
-        VBox sidebar = new VBox(30);
-        sidebar.setPrefWidth(250);
-        sidebar.setPadding(new Insets(20));
-        sidebar.getStyleClass().add("sidebar");
-        
-        // Logo
-        HBox logo = new HBox(12);
-        logo.setAlignment(Pos.CENTER_LEFT);
-        
-        Circle logoIcon = new Circle(20);
-        logoIcon.setFill(Color.valueOf("#3498db"));
-        
-        Text logoText = new Text("Roadster");
-        logoText.setFont(Font.font("Segoe UI", FontWeight.BOLD, 20));
-        logoText.setFill(Color.valueOf("#2c3e50"));
-        
-        logo.getChildren().addAll(logoIcon, logoText);
-        
-        // Navigation menu
-        VBox navMenu = new VBox(10);
-        
-        // Nav items
-        HBox dashboardItem = createNavItem("📊", "Dashboard", false);
-        HBox mapsItem = createNavItem("🗺️", "Interactive Map", false);
-        HBox driversItem = createNavItem("🚗", "Drivers", false);
-        HBox policeItem = createNavItem("👮", "Police Box", true);
-        HBox profileItem = createNavItem("👤", "User Profile", false);
-        
-        navMenu.getChildren().addAll(dashboardItem, mapsItem, driversItem, policeItem, profileItem);
-        
-        sidebar.getChildren().addAll(logo, navMenu);
-        return sidebar;
-    }
-    
-    private HBox createNavItem(String icon, String text, boolean isActive) {
-        HBox item = new HBox(12);
-        item.setAlignment(Pos.CENTER_LEFT);
-        item.setPadding(new Insets(12, 16, 12, 16));
-        item.setPrefHeight(50);
-        item.getStyleClass().add("nav-item");
-        
-        if (isActive) {
-            item.getStyleClass().add("active");
-        }
-        
-        Text iconText = new Text(icon);
-        iconText.setFont(Font.font(16));
-        
-        Text label = new Text(text);
-        label.setFont(Font.font("Segoe UI", 14));
-        
-        item.getChildren().addAll(iconText, label);
-        
-        // Add click handler
-        item.setOnMouseClicked(e -> handleNavigation(text));
-        
-        return item;
     }
     
     private VBox createMainContent() {
@@ -153,11 +91,15 @@ public class PoliceBoxView extends HBox {
         HBox header = new HBox(20);
         header.setAlignment(Pos.CENTER_LEFT);
         header.setPadding(new Insets(0, 0, 20, 0));
-        
+
+        // Back to Dashboard Button
+        Button backButton = new Button("← Back to Dashboard");
+        backButton.getStyleClass().add("back-btn");
+        backButton.setOnAction(e -> handleNavigation("Dashboard"));
         // City title
         VBox cityTitle = new VBox(5);
         
-        Text cityName = new Text("New York City");
+        Text cityName = new Text("Chattogram");
         cityName.setFont(Font.font("Segoe UI", FontWeight.BOLD, 24));
         cityName.setFill(Color.valueOf("#2c3e50"));
         
@@ -186,7 +128,7 @@ public class PoliceBoxView extends HBox {
         userInfo.getChildren().addAll(userName, userRole);
         userProfile.getChildren().addAll(userAvatar, userInfo);
         
-        header.getChildren().addAll(cityTitle, userProfile);
+        header.getChildren().addAll(backButton,cityTitle, userProfile);
         HBox.setHgrow(cityTitle, Priority.ALWAYS);
         
         return header;
@@ -299,13 +241,13 @@ public class PoliceBoxView extends HBox {
     }
     
     private Color getStatColor(String type) {
-        switch (type) {
-            case "active": return Color.valueOf("#27ae60");
-            case "maintenance": return Color.valueOf("#f39c12");
-            case "offline": return Color.valueOf("#e74c3c");
-            case "total": return Color.valueOf("#3498db");
-            default: return Color.valueOf("#95a5a6");
-        }
+        return switch (type) {
+            case "active" -> Color.valueOf("#27ae60");
+            case "maintenance" -> Color.valueOf("#f39c12");
+            case "offline" -> Color.valueOf("#e74c3c");
+            case "total" -> Color.valueOf("#3498db");
+            default -> Color.valueOf("#95a5a6");
+        };
     }
     
     private void loadSampleData() {
@@ -410,12 +352,12 @@ public class PoliceBoxView extends HBox {
     }
     
     private Color getStatusColor(String status) {
-        switch (status) {
-            case "Active": return Color.valueOf("#27ae60");
-            case "Maintenance": return Color.valueOf("#f39c12");
-            case "Offline": return Color.valueOf("#e74c3c");
-            default: return Color.valueOf("#95a5a6");
-        }
+        return switch (status) {
+            case "Active" -> Color.valueOf("#27ae60");
+            case "Maintenance" -> Color.valueOf("#f39c12");
+            case "Offline" -> Color.valueOf("#e74c3c");
+            default -> Color.valueOf("#95a5a6");
+        };
     }
     
     private void setupStyling() {
@@ -462,11 +404,7 @@ public class PoliceBoxView extends HBox {
             updatePoliceBoxList();
         });
     }
-    
-    private void handleNavigation(String destination) {
-        System.out.println("Navigating to: " + destination);
-        // TODO: Implement navigation to other views
-    }
+
     
     private void viewPoliceBox(PoliceBox policeBox) {
         System.out.println("Viewing police box: " + policeBox.getName());
@@ -507,5 +445,10 @@ public class PoliceBoxView extends HBox {
         public void setLocation(String location) { this.location = location; }
         public void setStatus(String status) { this.status = status; }
         public void setDistrict(String district) { this.district = district; }
+    }
+    private void handleNavigation(String destination) {
+        System.out.println("Navigating to: " + destination);
+        // TODO: Implement navigation to other views
+        mainController.showDashboardView();
     }
 } 

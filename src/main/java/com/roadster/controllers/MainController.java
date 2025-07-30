@@ -13,9 +13,7 @@ public class MainController {
     
     @FXML
     private BorderPane mainContainer;
-    
-    @FXML
-    private ToolBar navigationBar;
+
     
     // View instances
     private LoginView loginView;
@@ -30,56 +28,44 @@ public class MainController {
         // Initialize all views
         loginView = new LoginView(this);
         dashboardView = new DashboardView(this);
-        driversView = new DriversView();
+        driversView = new DriversView(this);
         mapsView = new MapsView(this);
-        policeBoxView = new PoliceBoxView();
+        policeBoxView = new PoliceBoxView(this);
         userProfileView = new UserProfileView();
         
         // Set default view (login)
         showLoginView();
-        
-        // Setup navigation buttons
-        setupNavigation();
+
     }
-    
-    private void setupNavigation() {
-        // TODO: Add navigation buttons to toolbar
-        // TODO: Handle navigation between views
-    }
+
     
     @FXML
     private void showLoginView() {
         mainContainer.setCenter(loginView);
-        navigationBar.setVisible(false);
     }
     
     @FXML
     public void showDashboardView() {
         mainContainer.setCenter(dashboardView);
-        navigationBar.setVisible(true);
     }
     
     @FXML
     public void showDriversView() {
         mainContainer.setCenter(driversView);
-        navigationBar.setVisible(true);
     }
     
     @FXML
     public void showMapsView() {
         mainContainer.setCenter(mapsView);
-        navigationBar.setVisible(true);
     }
     
     @FXML
     public void showPoliceBoxView() {
         mainContainer.setCenter(policeBoxView);
-        navigationBar.setVisible(true);
     }
     
     @FXML
     public void showUserProfileView() {
         mainContainer.setCenter(userProfileView);
-        navigationBar.setVisible(true);
     }
 } 
