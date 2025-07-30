@@ -9,9 +9,6 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
-/**
- * Main application class for the Roadster JavaFX Demo
- */
 public class Main extends Application {
 
     @Override

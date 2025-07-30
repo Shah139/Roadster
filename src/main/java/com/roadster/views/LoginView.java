@@ -13,10 +13,6 @@ import javafx.scene.Node;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.BlurType;
 
-/**
- * Login View - JavaFX equivalent of login-page
- * This will contain the login form and authentication logic
- */
 public class LoginView extends HBox {
     
     private VBox loginForm;
@@ -141,8 +137,19 @@ public class LoginView extends HBox {
         
         for (int i = 0; i < features.length; i++) {
             HBox featureItem = new HBox(12);
-            featureItem.setAlignment(Pos.CENTER_LEFT);
-            
+            featureItem.setStyle(
+                    "-fx-background-color: rgba(255,255,255,0.1);"
+                            + "-fx-background-radius: 12;"
+                            + "-fx-border-radius: 12;"
+                            + "-fx-border-color: rgba(255,255,255,0.2);"
+                            + "-fx-border-width: 1;"
+                            + "-fx-padding: 16 20;"
+                            + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0.3, 0, 4);"
+                            + "-fx-transition: all 0.3s ease;" // Not supported, but included for reference
+            );
+            featureItem.setEffect(new DropShadow(BlurType.GAUSSIAN, Color.BLACK, 10, 0.3, 0, 4));
+            featureItem.setSpacing(16);
+            featureItem.setAlignment(Pos.CENTER);
             Text icon = new Text(icons[i]);
             icon.setFont(Font.font(20));
             icon.setFill(Color.WHITE);

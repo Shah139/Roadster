@@ -51,30 +51,37 @@ public class MainController {
     @FXML
     private void showLoginView() {
         mainContainer.setCenter(loginView);
+        navigationBar.setVisible(false);
+        navigationBar.getItems().clear();
     }
     
     @FXML
     private void showDashboardView() {
         mainContainer.setCenter(dashboardView);
+        navigationBar.setVisible(true);
     }
     
     @FXML
     private void showDriversView() {
         mainContainer.setCenter(driversView);
+        navigationBar.setVisible(true);
     }
     
     @FXML
     private void showMapsView() {
         mainContainer.setCenter(mapsView);
+        navigationBar.setVisible(true);
     }
     
     @FXML
     private void showPoliceBoxView() {
         mainContainer.setCenter(policeBoxView);
+        navigationBar.setVisible(true);
     }
     
     @FXML
     private void showUserProfileView() {
         mainContainer.setCenter(userProfileView);
+        navigationBar.setVisible(true);
     }
 } 
