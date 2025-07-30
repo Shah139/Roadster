@@ -124,10 +124,6 @@
     -fx-cursor: hand;
 }
 
-.toggle-link:hover {
-    -fx-text-fill: #2980b9;
-    -fx-underline: true;
-}
 
 /* Dashboard View Styles */
 .dashboard-view {

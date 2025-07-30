@@ -2,7 +2,6 @@ package com.roadster.controllers;
 
 import javafx.fxml.FXML;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.control.Button;
 import javafx.scene.control.ToolBar;
 import com.roadster.views.*;
 
@@ -29,7 +28,7 @@ public class MainController {
     @FXML
     public void initialize() {
         // Initialize all views
-        loginView = new LoginView();
+        loginView = new LoginView(this);
         dashboardView = new DashboardView();
         driversView = new DriversView();
         mapsView = new MapsView();
@@ -52,11 +51,10 @@ public class MainController {
     private void showLoginView() {
         mainContainer.setCenter(loginView);
         navigationBar.setVisible(false);
-        navigationBar.getItems().clear();
     }
     
     @FXML
-    private void showDashboardView() {
+    public void showDashboardView() {
         mainContainer.setCenter(dashboardView);
         navigationBar.setVisible(true);
     }

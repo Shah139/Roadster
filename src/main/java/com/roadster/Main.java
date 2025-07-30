@@ -21,7 +21,7 @@ public class Main extends Application {
         MainController controller = loader.getController();
         
         // Create the scene
-        Scene scene = new Scene(root, 800, 600);
+        Scene scene = new Scene(root, 1280, 600);
         scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
         
         // Configure the stage
