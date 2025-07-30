@@ -1,5 +1,6 @@
 package com.roadster.views;
 
+import com.roadster.controllers.MainController;
 import javafx.scene.layout.*;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
@@ -29,7 +30,7 @@ import javafx.scene.Scene;
  * This will contain interactive map functionality and layer controls
  */
 public class MapsView extends VBox {
-    
+    private MainController mainController;
     private HBox header;
     private HBox mainContent;
     private VBox sidebar;
@@ -49,7 +50,8 @@ public class MapsView extends VBox {
     private Group mapElements;
     private Pane roadDetailsModal;
     
-    public MapsView() {
+    public MapsView(MainController mainController) {
+        this.mainController = mainController;
         initializeComponents();
         setupLayout();
         setupStyling();

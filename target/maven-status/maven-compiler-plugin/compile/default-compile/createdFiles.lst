@@ -10,3 +10,4 @@ com\roadster\views\PoliceBoxView$PoliceBox.class
 com\roadster\views\DashboardView.class
 com\roadster\Main.class
 com\roadster\models\Driver.class
+com\roadster\components\SideBar.class

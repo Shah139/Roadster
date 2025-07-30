@@ -29,9 +29,9 @@ public class MainController {
     public void initialize() {
         // Initialize all views
         loginView = new LoginView(this);
-        dashboardView = new DashboardView();
+        dashboardView = new DashboardView(this);
         driversView = new DriversView();
-        mapsView = new MapsView();
+        mapsView = new MapsView(this);
         policeBoxView = new PoliceBoxView();
         userProfileView = new UserProfileView();
         
@@ -60,25 +60,25 @@ public class MainController {
     }
     
     @FXML
-    private void showDriversView() {
+    public void showDriversView() {
         mainContainer.setCenter(driversView);
         navigationBar.setVisible(true);
     }
     
     @FXML
-    private void showMapsView() {
+    public void showMapsView() {
         mainContainer.setCenter(mapsView);
         navigationBar.setVisible(true);
     }
     
     @FXML
-    private void showPoliceBoxView() {
+    public void showPoliceBoxView() {
         mainContainer.setCenter(policeBoxView);
         navigationBar.setVisible(true);
     }
     
     @FXML
-    private void showUserProfileView() {
+    public void showUserProfileView() {
         mainContainer.setCenter(userProfileView);
         navigationBar.setVisible(true);
     }

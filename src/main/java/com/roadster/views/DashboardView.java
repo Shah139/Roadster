@@ -1,5 +1,7 @@
 package com.roadster.views;
 
+import com.roadster.components.SideBar;
+import com.roadster.controllers.MainController;
 import javafx.scene.layout.*;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
@@ -26,8 +28,10 @@ public class DashboardView extends HBox {
     private ComboBox<String> cityDropdown;
     private PieChart trafficChart;
     private LineChart<String, Number> trendChart;
+    private MainController mainController;
 
-    public DashboardView() {
+    public DashboardView(MainController mainController) {
+        this.mainController = mainController;
         initializeComponents();
         setupLayout();
         setupStyling();
@@ -40,8 +44,8 @@ public class DashboardView extends HBox {
         searchField.setPromptText("Search");
 
         cityDropdown = new ComboBox<>();
-        cityDropdown.getItems().addAll("New York", "Los Angeles", "Chicago", "Houston", "Phoenix");
-        cityDropdown.setValue("New York");
+        cityDropdown.getItems().addAll("Chattogram", "Dhaka", "Rajshahi", "Khulna", "Sylhet", "Barisal", "Rangpur", "Mymensingh");
+        cityDropdown.setValue("City Location");
 
         // Charts
         setupCharts();
@@ -111,8 +115,8 @@ public class DashboardView extends HBox {
         setSpacing(0);
 
         // Sidebar
-        sidebar = createSidebar();
-
+        SideBar sideBar = new SideBar(mainController);
+        sidebar = sideBar.createSidebar();
         // Main content
         mainContent = createMainContent();
 
@@ -121,65 +125,6 @@ public class DashboardView extends HBox {
         HBox.setHgrow(mainContent, Priority.ALWAYS); // mainContent expands to fill remaining space
     }
 
-    private VBox createSidebar() {
-        VBox sidebar = new VBox(30);
-        sidebar.setPrefWidth(250);
-        sidebar.setPadding(new Insets(20));
-        sidebar.getStyleClass().add("sidebar");
-
-        // Logo
-        HBox logo = new HBox(12);
-        logo.setAlignment(Pos.CENTER_LEFT);
-
-        Circle logoIcon = new Circle(20);
-        logoIcon.setFill(Color.valueOf("#3498db"));
-
-        Text logoText = new Text("Roadster");
-        logoText.setFont(Font.font("Segoe UI", FontWeight.BOLD, 20));
-        logoText.setFill(Color.valueOf("#2c3e50"));
-
-        logo.getChildren().addAll(logoIcon, logoText);
-
-        // Navigation menu
-        VBox navMenu = new VBox(10);
-
-        // Dashboard item (active)
-        HBox dashboardItem = createNavItem("📊", "Dashboard", true);
-
-        // Other nav items
-        HBox mapsItem = createNavItem("🗺️", "Interactive Map", false);
-        HBox profileItem = createNavItem("👤", "User Profile", false);
-
-        navMenu.getChildren().addAll(dashboardItem, mapsItem, profileItem);
-
-        sidebar.getChildren().addAll(logo, navMenu);
-        return sidebar;
-    }
-
-    private HBox createNavItem(String icon, String text, boolean isActive) {
-        HBox item = new HBox(12);
-        item.setAlignment(Pos.CENTER_LEFT);
-        item.setPadding(new Insets(12, 16, 12, 16));
-        item.setPrefHeight(50);
-        item.getStyleClass().add("nav-item");
-
-        if (isActive) {
-            item.getStyleClass().add("active");
-        }
-
-        Text iconText = new Text(icon);
-        iconText.setFont(Font.font(16));
-
-        Text label = new Text(text);
-        label.setFont(Font.font("Segoe UI", 14));
-
-        item.getChildren().addAll(iconText, label);
-
-        // Add click handler
-        item.setOnMouseClicked(e -> handleNavigation(text));
-
-        return item;
-    }
 
     private VBox createMainContent() {
         VBox mainContent = new VBox(20);
@@ -417,6 +362,12 @@ public class DashboardView extends HBox {
     private void handleNavigation(String destination) {
         System.out.println("Navigating to: " + destination);
         // TODO: Implement navigation to other views
+        if(destination == "Dashboard"){
+            mainController.showDashboardView();
+        }else if(destination == "User Profile"){
+            mainController.showUserProfileView();
+        }
+
     }
 
     private void handleSearch() {
