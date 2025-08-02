@@ -1,3 +1,4 @@
+com\roadster\controllers\MapsController.class
 com\roadster\views\MapsView.class
 com\roadster\models\User.class
 com\roadster\views\DriversView.class

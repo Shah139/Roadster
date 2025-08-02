@@ -1,9 +1,12 @@
 package com.roadster.controllers;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.control.ToolBar;
+import javafx.scene.Parent;
 import com.roadster.views.*;
+import java.io.IOException;
 
 /**
  * Main Controller - Handles navigation between different views
@@ -19,7 +22,8 @@ public class MainController {
     private LoginView loginView;
     private DashboardView dashboardView;
     private DriversView driversView;
-    private MapsView mapsView;
+    private Parent mapsView; // Changed to Parent for FXML-loaded view
+    private MapsController mapsController; // Reference to the maps controller
     private PoliceBoxView policeBoxView;
     private UserProfileView userProfileView;
     
@@ -29,13 +33,26 @@ public class MainController {
         loginView = new LoginView(this);
         dashboardView = new DashboardView(this);
         driversView = new DriversView(this);
-        mapsView = new MapsView(this);
         policeBoxView = new PoliceBoxView(this);
         userProfileView = new UserProfileView();
         
+        // Initialize FXML-based maps view
+        initializeMapsView();
+
         // Set default view (login)
         showLoginView();
+    }
 
+    private void initializeMapsView() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MapsView.fxml"));
+            mapsView = loader.load();
+            mapsController = loader.getController();
+            mapsController.setMainController(this);
+        } catch (IOException e) {
+            System.err.println("Error loading MapsView.fxml: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     
@@ -56,7 +73,11 @@ public class MainController {
     
     @FXML
     public void showMapsView() {
-        mainContainer.setCenter(mapsView);
+        if (mapsView != null) {
+            mainContainer.setCenter(mapsView);
+        } else {
+            System.err.println("MapsView is not properly initialized");
+        }
     }
     
     @FXML
@@ -68,4 +89,4 @@ public class MainController {
     public void showUserProfileView() {
         mainContainer.setCenter(userProfileView);
     }
-} 
+}
