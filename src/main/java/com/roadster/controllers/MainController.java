@@ -38,11 +38,11 @@ public class MainController {
         
         // Initialize FXML-based maps view
         initializeMapsView();
-
+        
         // Set default view (login)
         showLoginView();
     }
-
+    
     private void initializeMapsView() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MapsView.fxml"));
