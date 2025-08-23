@@ -125,47 +125,7 @@ public class LoginView extends HBox {
         subtitleText.setFill(Color.WHITE);
         subtitleText.setOpacity(0.9);
 
-        // Features list
-        VBox featuresList = new VBox(20);
-        featuresList.setAlignment(Pos.CENTER_LEFT);
-
-        String[] features = {
-                "Real-time Analytics",
-                "Interactive Maps",
-                "Driver Management",
-                "Police Box Monitoring"
-        };
-
-        String[] icons = {"📊", "🗺️", "🚗", "👮"};
-
-        for (int i = 0; i < features.length; i++) {
-            HBox featureItem = new HBox(12);
-            featureItem.setStyle(
-                    "-fx-background-color: rgba(255,255,255,0.1);"
-                            + "-fx-background-radius: 12;"
-                            + "-fx-border-radius: 12;"
-                            + "-fx-border-color: rgba(255,255,255,0.2);"
-                            + "-fx-border-width: 1;"
-                            + "-fx-padding: 16 20;"
-                            + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0.3, 0, 4);"
-                            + "-fx-transition: all 0.3s ease;" // Not supported, but included for reference
-            );
-            featureItem.setEffect(new DropShadow(BlurType.GAUSSIAN, Color.BLACK, 10, 0.3, 0, 4));
-            featureItem.setSpacing(16);
-            featureItem.setAlignment(Pos.CENTER);
-            Text icon = new Text(icons[i]);
-            icon.setFont(Font.font(20));
-            icon.setFill(Color.WHITE);
-
-            Text featureText = new Text(features[i]);
-            featureText.setFont(Font.font("Segoe UI", 16));
-            featureText.setFill(Color.WHITE);
-
-            featureItem.getChildren().addAll(icon, featureText);
-            featuresList.getChildren().add(featureItem);
-        }
-
-        brandingSection.getChildren().addAll(logo, welcomeText, subtitleText, featuresList);
+        brandingSection.getChildren().addAll(logo, welcomeText, subtitleText);
         return brandingSection;
     }
 
@@ -450,3 +410,4 @@ public class LoginView extends HBox {
         alert.showAndWait();
     }
 }
+

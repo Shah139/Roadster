@@ -34,8 +34,8 @@ public class MainController {
         dashboardView = new DashboardView(this);
         driversView = new DriversView(this);
         policeBoxView = new PoliceBoxView(this);
-        userProfileView = new UserProfileView();
-        
+        userProfileView = new UserProfileView(this);
+
         // Initialize FXML-based maps view
         initializeMapsView();
         
