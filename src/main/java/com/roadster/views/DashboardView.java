@@ -2,30 +2,28 @@ package com.roadster.views;
 
 import com.roadster.components.SideBar;
 import com.roadster.controllers.MainController;
-import javafx.scene.layout.*;
-import javafx.scene.control.*;
-import javafx.scene.text.Text;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.chart.*;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.chart.PieChart;
-import javafx.scene.chart.LineChart;
-import javafx.scene.chart.CategoryAxis;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.XYChart;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.scene.Node;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
+
 public class DashboardView extends HBox {
 
+    public static int selectedCityIndex = 0;
+    public static ComboBox<String> cityDropdown;
     private VBox sidebar;
     private VBox mainContent;
     private TextField searchField;
-    private ComboBox<String> cityDropdown;
     private PieChart trafficChart;
     private LineChart<String, Number> trendChart;
     private MainController mainController;
@@ -45,7 +43,14 @@ public class DashboardView extends HBox {
 
         cityDropdown = new ComboBox<>();
         cityDropdown.getItems().addAll("All Districts", "Chattogram", "Dhaka", "Rajshahi", "Khulna", "Sylhet", "Barisal", "Rangpur", "Mymensingh");
-        cityDropdown.setValue("City Location");
+
+        // Set default value to first item instead of placeholder text
+        if (selectedCityIndex == 0 && cityDropdown.getValue() == null) {
+            cityDropdown.setValue("All Districts");
+            selectedCityIndex = 0;
+        } else if (selectedCityIndex < cityDropdown.getItems().size()) {
+            cityDropdown.setValue(cityDropdown.getItems().get(selectedCityIndex));
+        }
 
         // Charts
         setupCharts();
@@ -111,6 +116,7 @@ public class DashboardView extends HBox {
         // Style the line chart
         trendChart.setStyle("-fx-background-color: white; -fx-border-color: #e0e0e0; -fx-border-width: 1;");
     }
+
     private void setupLayout() {
         setSpacing(0);
 
@@ -152,7 +158,7 @@ public class DashboardView extends HBox {
         searchSection.setAlignment(Pos.CENTER_LEFT);
 
         // City dropdown
-        Label cityLabel = new Label("City Location:");
+        Label cityLabel = new Label("District Filter:");
         cityLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 14));
 
         cityDropdown.setPrefWidth(150);
@@ -231,8 +237,8 @@ public class DashboardView extends HBox {
         grid.add(createAccidentStatsCard(), 1, 1);
         grid.add(createStatCard("Live Traffic Alert", trendChart), 0, 2);
         grid.add(createIncidentAnalysisCard(), 1, 2);
-        grid.add(createNavigationCard("Police Box", "👮", "#e74c3c"), 0, 3);
-        grid.add(createNavigationCard("Drivers List", "🚗", "#27ae60"), 1, 3);
+        grid.add(createNavigationCard("Drivers List", "🚗", "#27ae60"), 0, 3);
+        grid.add(createPoliceBoxCard(), 1, 3); // Added Police Box card
         grid.add(createHighlightCard(), 0, 4, 2, 1); // Spans 2 columns
 
         // Wrap grid in a ScrollPane
@@ -362,12 +368,11 @@ public class DashboardView extends HBox {
     private void handleNavigation(String destination) {
         System.out.println("Navigating to: " + destination);
         // TODO: Implement navigation to other views
-        if("police-box".equals(destination)){
-            mainController.showPoliceBoxView();
-        }else if("drivers-list".equals(destination)){
+        if ("drivers-list".equals(destination)) {
             mainController.showDriversView();
+        } else if ("police-box".equals(destination)) {
+            mainController.showPoliceBoxView();
         }
-
     }
 
     private void handleSearch() {
@@ -379,6 +384,7 @@ public class DashboardView extends HBox {
     private void handleCityChange() {
         String selectedCity = cityDropdown.getValue();
         System.out.println("City changed to: " + selectedCity);
+        selectedCityIndex = cityDropdown.getSelectionModel().getSelectedIndex();
         // TODO: Update dashboard data based on selected city
     }
 
@@ -518,6 +524,46 @@ public class DashboardView extends HBox {
 
         // Add click handler
         card.setOnMouseClicked(e -> handleNavigation(title.toLowerCase().replace(" ", "-")));
+
+        return card;
+    }
+
+    // New Police Box card method
+    private VBox createPoliceBoxCard() {
+        VBox card = new VBox(15);
+        card.setPadding(new Insets(20));
+        card.getStyleClass().add("stat-card");
+        card.setPrefWidth(300);
+        card.setPrefHeight(150);
+        card.setStyle("-fx-cursor: hand;");
+
+        HBox content = new HBox(15);
+        content.setAlignment(Pos.CENTER_LEFT);
+
+        Circle iconCircle = new Circle(25);
+        iconCircle.setFill(Color.valueOf("#3f51b5")); // Police blue color
+
+        Text iconText = new Text("👮");
+        iconText.setFont(Font.font(20));
+
+        StackPane iconPane = new StackPane(iconCircle, iconText);
+
+        VBox info = new VBox(5);
+        Text titleText = new Text("Police Box");
+        titleText.setFont(Font.font("Segoe UI", FontWeight.BOLD, 16));
+        titleText.setFill(Color.valueOf("#2c3e50"));
+
+        Text subtitleText = new Text("Emergency & Reports");
+        subtitleText.setFont(Font.font("Segoe UI", 12));
+        subtitleText.setFill(Color.valueOf("#7f8c8d"));
+
+        info.getChildren().addAll(titleText, subtitleText);
+
+        content.getChildren().addAll(iconPane, info);
+        card.getChildren().add(content);
+
+        // Add click handler
+        card.setOnMouseClicked(e -> handleNavigation("police-box"));
 
         return card;
     }

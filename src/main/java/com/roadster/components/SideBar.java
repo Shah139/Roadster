@@ -40,7 +40,7 @@ public class SideBar extends VBox{
 
         // Dashboard item (active)
         HBox dashboardItem = createNavItem("📊", "Dashboard", true);
-        // Other nav items
+        // Other nav items (Police Box removed)
         HBox mapsItem = createNavItem("🗺️", "Interactive Map", false);
         HBox profileItem = createNavItem("👤", "User Profile", false);
 

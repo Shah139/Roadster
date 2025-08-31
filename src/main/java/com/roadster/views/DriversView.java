@@ -59,17 +59,17 @@ public class DriversView extends HBox {
     
     private void setupLayout() {
         setSpacing(0);
-        
         // Sidebar
         SideBar sideBarComponent = new SideBar(mainController);
         sidebar = sideBarComponent.createSidebar();
-        
         // Main content
         mainContent = createMainContent();
-        
         getChildren().addAll(sidebar, mainContent);
         HBox.setHgrow(sidebar, Priority.NEVER);
         HBox.setHgrow(mainContent, Priority.ALWAYS);
+        // Ensure driversList expands to fill available width
+        VBox.setVgrow(mainContent, Priority.ALWAYS);
+        VBox.setVgrow(driversList, Priority.ALWAYS);
     }
     
 
@@ -77,7 +77,7 @@ public class DriversView extends HBox {
     
     private VBox createMainContent() {
         VBox mainContent = new VBox(20);
-        mainContent.setPadding(new Insets(20));
+        mainContent.setPadding(new Insets(20, 0, 20, 0)); // Remove left/right padding for full width
         mainContent.getStyleClass().add("main-content");
         
         // Header
@@ -87,6 +87,7 @@ public class DriversView extends HBox {
         VBox pageContent = createPageContent();
         
         mainContent.getChildren().addAll(header, pageContent);
+        VBox.setVgrow(pageContent, Priority.ALWAYS);
         return mainContent;
     }
     
@@ -135,7 +136,6 @@ public class DriversView extends HBox {
     
     private VBox createPageContent() {
         VBox pageContent = new VBox(20);
-        
         // Page header
         HBox pageHeader = createPageHeader();
         
@@ -145,7 +145,7 @@ public class DriversView extends HBox {
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.getStyleClass().add("drivers-scroll-pane");
-        
+        scrollPane.setPadding(new Insets(0)); // Remove padding for full width
         pageContent.getChildren().addAll(pageHeader, scrollPane);
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
         
@@ -392,4 +392,5 @@ public class DriversView extends HBox {
             }
         });
     }
-} 
+}
+
