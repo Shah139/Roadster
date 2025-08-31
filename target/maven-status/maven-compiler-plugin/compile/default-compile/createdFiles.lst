@@ -1,4 +1,5 @@
 com\roadster\controllers\MapsController.class
+com\roadster\service\ApiService$3.class
 com\roadster\models\PoliceStation.class
 com\roadster\service\ApiService$2.class
 com\roadster\models\User.class

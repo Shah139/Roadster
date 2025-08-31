@@ -5,6 +5,7 @@ import java.util.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.roadster.models.PoliceStation;
+import com.roadster.models.Driver;
 
 public class ApiService {
     private static final String API_URL = "https://40347cd4e0c3.ngrok-free.app/api/";
@@ -95,5 +96,151 @@ public class ApiService {
         }
 
         return groupedStations;
+    }
+
+    // ==================== DRIVER METHODS ====================
+
+    /**
+     * Fetches all drivers from the API
+     * @return List of Driver objects
+     */
+    public static List<Driver> fetchAllDrivers() throws Exception {
+        String apiUrl = API_URL + "drivers";
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(apiUrl))
+                .header("ngrok-skip-browser-warning", "true")
+                .GET()
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.readValue(response.body(), new TypeReference<List<Driver>>() {});
+    }
+
+    /**
+     * Fetches drivers filtered by district
+     * @param district The district to filter by (e.g., "Chattogram", "Dhaka")
+     * @return List of drivers in the specified district
+     */
+    public static List<Driver> fetchDriversByDistrict(String district) throws Exception {
+        List<Driver> allDrivers = fetchAllDrivers();
+        List<Driver> filteredDrivers = new ArrayList<>();
+
+        for (Driver driver : allDrivers) {
+            if (driver.getDistrict().equalsIgnoreCase(district)) {
+                filteredDrivers.add(driver);
+            }
+        }
+
+        return filteredDrivers;
+    }
+
+    /**
+     * Fetches a specific driver by ID
+     * @param driverId The ID of the driver to fetch
+     * @return Driver object or null if not found
+     */
+    public static Driver fetchDriverById(int driverId) throws Exception {
+        String apiUrl = API_URL + "drivers/" + driverId;
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(apiUrl))
+                .header("ngrok-skip-browser-warning", "true")
+                .GET()
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() == 404) {
+            return null; // Driver not found
+        }
+
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.readValue(response.body(), Driver.class);
+    }
+
+    /**
+     * Searches drivers by name (case-insensitive partial match)
+     * @param searchTerm The search term to match against driver names
+     * @return List of drivers whose names contain the search term
+     */
+    public static List<Driver> searchDriversByName(String searchTerm) throws Exception {
+        List<Driver> allDrivers = fetchAllDrivers();
+        List<Driver> matchingDrivers = new ArrayList<>();
+
+        String searchLower = searchTerm.toLowerCase();
+        for (Driver driver : allDrivers) {
+            if (driver.getName().toLowerCase().contains(searchLower)) {
+                matchingDrivers.add(driver);
+            }
+        }
+
+        return matchingDrivers;
+    }
+
+    /**
+     * Searches drivers by license number (exact or partial match)
+     * @param licenseNumber The license number to search for
+     * @return List of drivers with matching license numbers
+     */
+    public static List<Driver> searchDriversByLicense(String licenseNumber) throws Exception {
+        List<Driver> allDrivers = fetchAllDrivers();
+        List<Driver> matchingDrivers = new ArrayList<>();
+
+        for (Driver driver : allDrivers) {
+            if (driver.getLicenseNumber().contains(licenseNumber)) {
+                matchingDrivers.add(driver);
+            }
+        }
+
+        return matchingDrivers;
+    }
+
+    /**
+     * Gets drivers grouped by district
+     * @return Map<District, List<Driver>>
+     */
+    public static Map<String, List<Driver>> fetchDriversGroupedByDistrict() throws Exception {
+        List<Driver> allDrivers = fetchAllDrivers();
+        Map<String, List<Driver>> groupedDrivers = new HashMap<>();
+
+        for (Driver driver : allDrivers) {
+            String district = driver.getDistrict();
+            groupedDrivers.computeIfAbsent(district, k -> new ArrayList<>()).add(driver);
+        }
+
+        return groupedDrivers;
+    }
+
+    /**
+     * Gets unique districts from drivers data
+     * @return List of unique district names from drivers
+     */
+    public static List<String> fetchDriverDistricts() throws Exception {
+        List<Driver> allDrivers = fetchAllDrivers();
+        Set<String> uniqueDistricts = new HashSet<>();
+
+        for (Driver driver : allDrivers) {
+            uniqueDistricts.add(driver.getDistrict());
+        }
+
+        return new ArrayList<>(uniqueDistricts);
+    }
+
+    /**
+     * Gets driver count statistics by district
+     * @return Map<District, Integer> with driver counts
+     */
+    public static Map<String, Integer> getDriverCountByDistrict() throws Exception {
+        Map<String, List<Driver>> groupedDrivers = fetchDriversGroupedByDistrict();
+        Map<String, Integer> driverCounts = new HashMap<>();
+
+        for (Map.Entry<String, List<Driver>> entry : groupedDrivers.entrySet()) {
+            driverCounts.put(entry.getKey(), entry.getValue().size());
+        }
+
+        return driverCounts;
     }
 }
