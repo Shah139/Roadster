@@ -8,7 +8,7 @@ import com.roadster.models.PoliceStation;
 import com.roadster.models.Driver;
 
 public class ApiService {
-    private static final String API_URL = "https://40347cd4e0c3.ngrok-free.app/api/";
+    private static final String API_URL = "https://8569284e503d.ngrok-free.app/api/";
 
     public static List<PoliceStation> fetchPoliceStations() throws Exception {
         String apiUrl = API_URL + "police-stations";

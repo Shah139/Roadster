@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phone Location Simulator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .connected {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .input-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+        .btn-danger {
+            background: #e74c3c;
+        }
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        .btn-success {
+            background: #27ae60;
+        }
+        .btn-success:hover {
+            background: #229954;
+        }
+        .coordinates {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .preset-locations {
+            margin: 20px 0;
+        }
+        .preset-btn {
+            background: #8e44ad;
+            margin: 2px;
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+        .preset-btn:hover {
+            background: #7d3c98;
+        }
+        .auto-mode {
+            background: #f39c12;
+            border: 2px solid #e67e22;
+        }
+        .log {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 Phone Location Simulator</h1>
+        <p>This tool simulates a phone sending location data to your Spring Boot server for testing the real-time tracking feature.</p>
+        
+        <div id="status" class="status disconnected">
+            🔴 Disconnected from server
+        </div>
+        
+        <div class="input-group">
+            <label for="serverUrl">Server URL:</label>
+            <input type="text" id="serverUrl" value="https://f11e164bbec2.ngrok-free.app" readonly>
+        </div>
+        
+        <div class="coordinates">
+            <div class="input-group">
+                <label for="latitude">Latitude:</label>
+                <input type="number" id="latitude" step="0.000001" value="23.8103" placeholder="e.g., 23.8103">
+            </div>
+            <div class="input-group">
+                <label for="longitude">Longitude:</label>
+                <input type="number" id="longitude" step="0.000001" value="90.4125" placeholder="e.g., 90.4125">
+            </div>
+        </div>
+        
+        <div class="preset-locations">
+            <label>Quick Locations:</label><br>
+            <button class="preset-btn" onclick="setLocation(23.8103, 90.4125)">Dhaka 🇧🇩</button>
+            <button class="preset-btn" onclick="setLocation(22.4666, 91.9166)">Chittagong 🇧🇩</button>
+            <button class="preset-btn" onclick="setLocation(40.7589, -73.9851)">New York 🇺🇸</button>
+            <button class="preset-btn" onclick="setLocation(51.5074, -0.1278)">London 🇬🇧</button>
+            <button class="preset-btn" onclick="setLocation(35.6762, 139.6503)">Tokyo 🇯🇵</button>
+        </div>
+        
+        <div style="text-align: center; margin: 20px 0;">
+            <button id="connectBtn" onclick="connect()">Connect to Server</button>
+            <button id="sendBtn" onclick="sendLocation()" disabled>Send Location</button>
+            <button class="btn-success" id="autoBtn" onclick="toggleAutoMode()" disabled>Start Auto Mode</button>
+        </div>
+        
+        <div class="log" id="log">
+            Waiting for connection...
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+    
+    <script>
+        let stompClient = null;
+        let isConnected = false;
+        let autoModeInterval = null;
+        let autoModeActive = false;
+        
+        function connect() {
+            if (isConnected) {
+                disconnect();
+                return;
+            }
+            
+            const serverUrl = document.getElementById('serverUrl').value + '/gs-guide-websocket';
+            log('Connecting to: ' + serverUrl);
+            updateStatus('🟡 Connecting...', 'connecting');
+            
+            const socket = new SockJS(serverUrl);
+            stompClient = new StompJs.Client({
+                webSocketFactory: () => socket,
+                debug: function (str) {
+                    log('STOMP: ' + str);
+                },
+                reconnectDelay: 5000,
+                heartbeatIncoming: 4000,
+                heartbeatOutgoing: 4000,
+            });
+
+            stompClient.onConnect = function (frame) {
+                log('✅ Connected to server: ' + frame);
+                isConnected = true;
+                updateStatus('🟢 Connected to tracking server', 'connected');
+                document.getElementById('connectBtn').textContent = 'Disconnect';
+                document.getElementById('sendBtn').disabled = false;
+                document.getElementById('autoBtn').disabled = false;
+            };
+
+            stompClient.onStompError = function (frame) {
+                log('❌ STOMP error: ' + frame.headers['message']);
+                log('Details: ' + frame.body);
+                updateStatus('🔴 Connection error', 'disconnected');
+                isConnected = false;
+            };
+
+            stompClient.onWebSocketClose = function (event) {
+                log('🔴 WebSocket connection closed');
+                updateStatus('🔴 Disconnected from server', 'disconnected');
+                isConnected = false;
+                document.getElementById('connectBtn').textContent = 'Connect to Server';
+                document.getElementById('sendBtn').disabled = true;
+                document.getElementById('autoBtn').disabled = true;
+                if (autoModeActive) {
+                    toggleAutoMode();
+                }
+            };
+
+            stompClient.activate();
+        }
+        
+        function disconnect() {
+            if (stompClient && isConnected) {
+                if (autoModeActive) {
+                    toggleAutoMode();
+                }
+                stompClient.deactivate();
+                log('🔴 Disconnected from server');
+                updateStatus('🔴 Disconnected from server', 'disconnected');
+                document.getElementById('connectBtn').textContent = 'Connect to Server';
+                document.getElementById('sendBtn').disabled = true;
+                document.getElementById('autoBtn').disabled = true;
+                isConnected = false;
+            }
+        }
+        
+        function sendLocation() {
+            if (!isConnected || !stompClient) {
+                log('❌ Not connected to server');
+                return;
+            }
+            
+            const lat = document.getElementById('latitude').value;
+            const lng = document.getElementById('longitude').value;
+            
+            if (!lat || !lng) {
+                log('❌ Please enter valid coordinates');
+                return;
+            }
+            
+            const location = {
+                latitude: lat,
+                longitude: lng
+            };
+            
+            try {
+                stompClient.publish({
+                    destination: '/app/hello',
+                    body: JSON.stringify(location)
+                });
+                
+                log(`📱 Sent location: ${lat}, ${lng}`);
+            } catch (error) {
+                log('❌ Error sending location: ' + error.message);
+            }
+        }
+        
+        function setLocation(lat, lng) {
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lng;
+            log(`📍 Set location to: ${lat}, ${lng}`);
+        }
+        
+        function toggleAutoMode() {
+            if (autoModeActive) {
+                // Stop auto mode
+                clearInterval(autoModeInterval);
+                autoModeActive = false;
+                document.getElementById('autoBtn').textContent = 'Start Auto Mode';
+                document.getElementById('autoBtn').className = 'btn-success';
+                log('⏹️ Auto mode stopped');
+            } else {
+                // Start auto mode
+                autoModeActive = true;
+                document.getElementById('autoBtn').textContent = 'Stop Auto Mode';
+                document.getElementById('autoBtn').className = 'auto-mode';
+                log('▶️ Auto mode started - sending location every 3 seconds');
+                
+                autoModeInterval = setInterval(() => {
+                    // Add small random variations to simulate movement
+                    const baseLat = parseFloat(document.getElementById('latitude').value);
+                    const baseLng = parseFloat(document.getElementById('longitude').value);
+                    const variation = 0.001; // About 100 meters
+                    
+                    const newLat = baseLat + (Math.random() - 0.5) * variation;
+                    const newLng = baseLng + (Math.random() - 0.5) * variation;
+                    
+                    document.getElementById('latitude').value = newLat.toFixed(6);
+                    document.getElementById('longitude').value = newLng.toFixed(6);
+                    
+                    sendLocation();
+                }, 3000);
+            }
+        }
+        
+        function updateStatus(message, type) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+        
+        function log(message) {
+            const logEl = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logEl.innerHTML += `[${timestamp}] ${message}\n`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+        
+        // Auto-connect on page load
+        window.addEventListener('load', function() {
+            log('Phone Location Simulator ready');
+            log('Click "Connect to Server" to start testing');
+        });
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (isConnected) {
+                disconnect();
+            }
+        });
+    </script>
+</body>
+</html>
