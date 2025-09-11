@@ -1,6 +1,8 @@
 package com.roadster.views;
 
 import com.roadster.controllers.MainController;
+import com.roadster.utils.SharedPrefs;
+import com.roadster.utils.UserStorage;
 import javafx.scene.layout.*;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
@@ -38,6 +40,7 @@ public class LoginView extends HBox {
         setupLayout();
         setupStyling();
         setupEventHandlers();
+        loadSavedCredentials(); // Add this line
     }
 
     private void initializeComponents() {
@@ -339,12 +342,38 @@ public class LoginView extends HBox {
         String password = passwordField.getText();
         boolean rememberMe = rememberMeCheckBox.isSelected();
 
-        // TODO: Implement login validation and authentication
-        System.out.println("Login attempt: " + email + " (Remember: " + rememberMe + ")");
+        // First check if fields are not empty
+        if (email.isEmpty() || password.isEmpty()) {
+            showAlert("Login Failed", "Please enter both email and password", Alert.AlertType.ERROR);
+            return;
+        }
 
-        // For now, just show success message
-        showAlert("Login", "Login successful!", Alert.AlertType.INFORMATION);
-        mainController.showDashboardView(); // Switch to dashboard view
+        // Check if user is registered
+        if (!UserStorage.isUserRegistered(email)) {
+            showAlert("Login Failed", "No account found with this email. Please sign up first.", Alert.AlertType.ERROR);
+            return;
+        }
+
+        // Validate credentials
+        if (UserStorage.validateCredentials(email, password)) {
+            // Save credentials if remember me is checked
+            if (rememberMe) {
+                SharedPrefs.saveLoginCredentials(email, password, true);
+            }
+            showAlert("Login", "Login successful!", Alert.AlertType.INFORMATION);
+            mainController.showDashboardView();
+        } else {
+            showAlert("Login Failed", "Invalid email or password", Alert.AlertType.ERROR);
+        }
+    }
+
+    // Add this method to initialize fields with saved credentials
+    private void loadSavedCredentials() {
+        if (SharedPrefs.isRememberMe()) {
+            emailField.setText(SharedPrefs.getSavedEmail());
+            passwordField.setText(SharedPrefs.getSavedPassword());
+            rememberMeCheckBox.setSelected(true);
+        }
     }
 
     private void handleSignup() {
@@ -355,15 +384,21 @@ public class LoginView extends HBox {
         String role = roleComboBox.getValue();
         boolean agreeTerms = agreeTermsCheckBox.isSelected();
 
-        // TODO: Implement signup validation
+        // Validate signup input
         if (!validateSignup(fullName, email, password, confirmPassword, role, agreeTerms)) {
             return;
         }
 
-        System.out.println("Signup attempt: " + fullName + " (" + email + ") - Role: " + role);
+        // Check if user already exists
+        if (UserStorage.isUserRegistered(email)) {
+            showAlert("Signup Failed", "An account with this email already exists", Alert.AlertType.ERROR);
+            return;
+        }
 
-        // For now, just show success message
-        showAlert("Signup", "Account created successfully!", Alert.AlertType.INFORMATION);
+        // Register the new user
+        UserStorage.registerUser(email, password, fullName, role);
+        
+        showAlert("Signup", "Account created successfully! Please login.", Alert.AlertType.INFORMATION);
         showLoginForm(); // Switch back to login form
     }
 
