@@ -1,8 +1,7 @@
 package com.roadster.views;
 
 import com.roadster.controllers.MainController;
-import com.roadster.utils.SharedPrefs;
-import com.roadster.utils.UserStorage;
+import com.roadster.utils.UserManager;
 import javafx.scene.layout.*;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
@@ -12,9 +11,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.scene.Node;
-import javafx.scene.effect.DropShadow;
-import javafx.scene.effect.BlurType;
+
 
 public class LoginView extends HBox {
 
@@ -340,7 +337,6 @@ public class LoginView extends HBox {
     private void handleLogin() {
         String email = emailField.getText();
         String password = passwordField.getText();
-        boolean rememberMe = rememberMeCheckBox.isSelected();
 
         // First check if fields are not empty
         if (email.isEmpty() || password.isEmpty()) {
@@ -348,32 +344,20 @@ public class LoginView extends HBox {
             return;
         }
 
-        // Check if user is registered
-        if (!UserStorage.isUserRegistered(email)) {
-            showAlert("Login Failed", "No account found with this email. Please sign up first.", Alert.AlertType.ERROR);
-            return;
-        }
-
-        // Validate credentials
-        if (UserStorage.validateCredentials(email, password)) {
-            // Save credentials if remember me is checked
-            if (rememberMe) {
-                SharedPrefs.saveLoginCredentials(email, password, true);
-            }
-            showAlert("Login", "Login successful!", Alert.AlertType.INFORMATION);
+        // Validate credentials and login user
+        if (UserManager.loginUser(email, password)) {
+            showAlert("Login", "Welcome back, " + UserManager.getCurrentUserFullName() + "!", Alert.AlertType.INFORMATION);
+            mainController.refreshViewsAfterLogin(); // Refresh views with current user info
             mainController.showDashboardView();
         } else {
             showAlert("Login Failed", "Invalid email or password", Alert.AlertType.ERROR);
         }
     }
 
-    // Add this method to initialize fields with saved credentials
+    // Simple credential storage for remember me functionality
     private void loadSavedCredentials() {
-        if (SharedPrefs.isRememberMe()) {
-            emailField.setText(SharedPrefs.getSavedEmail());
-            passwordField.setText(SharedPrefs.getSavedPassword());
-            rememberMeCheckBox.setSelected(true);
-        }
+        // For now, we'll skip the remember me functionality
+        // You can implement a simple file-based storage if needed
     }
 
     private void handleSignup() {
@@ -389,17 +373,33 @@ public class LoginView extends HBox {
             return;
         }
 
-        // Check if user already exists
-        if (UserStorage.isUserRegistered(email)) {
-            showAlert("Signup Failed", "An account with this email already exists", Alert.AlertType.ERROR);
-            return;
-        }
+        // Register the new user (this also checks if user already exists)
+        if (UserManager.registerUser(email, password, fullName, role)) {
+            // After successful registration, log the user in
+            UserManager.loginUser(email, password); // This sets current user
+            
+            showAlert("Signup Successful", "Welcome to Roadster, " + fullName + "!", Alert.AlertType.INFORMATION);
 
-        // Register the new user
-        UserStorage.registerUser(email, password, fullName, role);
-        
-        showAlert("Signup", "Account created successfully! Please login.", Alert.AlertType.INFORMATION);
-        showLoginForm(); // Switch back to login form
+            // Clear form
+            clearSignupForm();
+
+            // Refresh views with current user info
+            mainController.refreshViewsAfterLogin();
+            
+            // Navigate to dashboard
+            mainController.showDashboardView();
+        } else {
+            showAlert("Signup Failed", "Unable to create account. Please try again.", Alert.AlertType.ERROR);
+        }
+    }
+
+    private void clearSignupForm() {
+        fullNameField.clear();
+        signupEmailField.clear();
+        signupPasswordField.clear();
+        confirmPasswordField.clear();
+        roleComboBox.setValue("Select your role");
+        agreeTermsCheckBox.setSelected(false);
     }
 
     private boolean validateSignup(String fullName, String email, String password,

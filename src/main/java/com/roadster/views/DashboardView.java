@@ -2,6 +2,7 @@ package com.roadster.views;
 
 import com.roadster.components.SideBar;
 import com.roadster.controllers.MainController;
+import com.roadster.utils.UserManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -24,6 +25,7 @@ public class DashboardView extends HBox {
     private VBox sidebar;
     private VBox mainContent;
     private TextField searchField;
+    private Button profileButton;
     private PieChart trafficChart;
     private LineChart<String, Number> trendChart;
     private MainController mainController;
@@ -157,52 +159,26 @@ public class DashboardView extends HBox {
         HBox searchSection = new HBox(10);
         searchSection.setAlignment(Pos.CENTER_LEFT);
 
-        // City dropdown
-        Label cityLabel = new Label("District Filter:");
-        cityLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 14));
+        // City dropdown for district filtering
+        Label cityLabel = new Label("District:");
+        cityLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 12));
+        cityLabel.setTextFill(Color.valueOf("#2c3e50"));
 
         cityDropdown.setPrefWidth(150);
+        cityDropdown.getStyleClass().add("city-dropdown");
 
-        // Search input
-        HBox searchContainer = new HBox(8);
-        searchContainer.setAlignment(Pos.CENTER_LEFT);
-        searchContainer.getStyleClass().add("search-container");
-
-        Text searchIcon = new Text("🔍");
-        searchIcon.setFont(Font.font(14));
-
-        searchField.setPrefWidth(300);
-        searchField.setPrefHeight(35);
-
-        searchContainer.getChildren().addAll(searchIcon, searchField);
-
-        searchSection.getChildren().addAll(cityLabel, cityDropdown, searchContainer);
+        searchSection.getChildren().addAll(cityLabel, cityDropdown);
 
         // Header right section
         HBox headerRight = new HBox(15);
         headerRight.setAlignment(Pos.CENTER_RIGHT);
 
-        Button profileButton = new Button("Profile Name");
+        // Profile button with user's name from UserManager
+        String currentUserName = UserManager.getCurrentUserFullName();
+        profileButton = new Button(currentUserName);
         profileButton.getStyleClass().add("profile-btn");
 
-        // User profile
-        HBox userProfile = new HBox(10);
-        userProfile.setAlignment(Pos.CENTER);
-
-        Circle userAvatar = new Circle(20);
-        userAvatar.setFill(Color.valueOf("#3498db"));
-
-        VBox userInfo = new VBox(2);
-        Text userName = new Text("City Name");
-        userName.setFont(Font.font("Segoe UI", FontWeight.BOLD, 12));
-        Text userRole = new Text("Profile Name");
-        userRole.setFont(Font.font("Segoe UI", 10));
-        userRole.setFill(Color.valueOf("#7f8c8d"));
-
-        userInfo.getChildren().addAll(userName, userRole);
-        userProfile.getChildren().addAll(userAvatar, userInfo);
-
-        headerRight.getChildren().addAll(profileButton, userProfile);
+        headerRight.getChildren().addAll(profileButton);
 
         header.getChildren().addAll(searchSection, headerRight);
         HBox.setHgrow(searchSection, Priority.ALWAYS);
@@ -363,6 +339,9 @@ public class DashboardView extends HBox {
 
         // City dropdown change
         cityDropdown.setOnAction(e -> handleCityChange());
+
+        // Profile button
+        profileButton.setOnAction(e -> handleProfileClick());
     }
 
     private void handleNavigation(String destination) {
@@ -379,6 +358,11 @@ public class DashboardView extends HBox {
         String searchTerm = searchField.getText();
         System.out.println("Searching for: " + searchTerm);
         // TODO: Implement search functionality
+    }
+
+    private void handleProfileClick() {
+        System.out.println("Profile button clicked");
+        mainController.showUserProfileView();
     }
 
     private void handleCityChange() {

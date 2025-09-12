@@ -3,7 +3,7 @@ package com.roadster.controllers;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.control.ToolBar;
+
 import javafx.scene.Parent;
 import com.roadster.views.*;
 import java.io.IOException;
@@ -57,7 +57,7 @@ public class MainController {
 
     
     @FXML
-    private void showLoginView() {
+    public void showLoginView() {
         mainContainer.setCenter(loginView);
     }
     
@@ -88,5 +88,18 @@ public class MainController {
     @FXML
     public void showUserProfileView() {
         mainContainer.setCenter(userProfileView);
+    }
+    
+    /**
+     * Refresh all views after successful login to update user info
+     */
+    public void refreshViewsAfterLogin() {
+        // Recreate views with updated user information
+        dashboardView = new DashboardView(this);
+        userProfileView = new UserProfileView(this);
+        driversView = new DriversView(this);
+        policeBoxView = new PoliceBoxView(this);
+        
+        System.out.println("Views refreshed after login with correct user information");
     }
 }

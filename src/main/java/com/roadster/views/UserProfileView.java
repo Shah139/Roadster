@@ -2,6 +2,7 @@ package com.roadster.views;
 
 import com.roadster.components.SideBar;
 import com.roadster.controllers.MainController;
+import com.roadster.utils.UserManager;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -72,15 +73,17 @@ public class UserProfileView extends HBox {
         StackPane avatarPane = new StackPane();
         avatarPane.setPrefSize(80, 80);
         avatarPane.setStyle("-fx-background-radius: 40; -fx-background-color: linear-gradient(to right, #667eea, #764ba2);");
-        Label avatarIcon = new Label("\uF007"); // FontAwesome user icon
-        avatarIcon.setFont(Font.font("FontAwesome", 32));
+        Label avatarIcon = new Label("👤"); // User emoji
+        avatarIcon.setFont(Font.font(32));
         avatarIcon.setTextFill(javafx.scene.paint.Color.WHITE);
         avatarPane.getChildren().add(avatarIcon);
         VBox profileInfo = new VBox(4);
-        Text nameText = new Text("John Cena");
+        Text nameText = new Text(UserManager.getCurrentUserFullName() != null ? 
+                                 UserManager.getCurrentUserFullName() : "Guest User");
         nameText.setFont(Font.font("Segoe UI", FontWeight.BOLD, 24));
         nameText.setFill(javafx.scene.paint.Color.web("#1e293b"));
-        Text roleText = new Text("User");
+        Text roleText = new Text(UserManager.getCurrentUserRole() != null ? 
+                               UserManager.getCurrentUserRole() : "User");
         roleText.setFont(Font.font("Segoe UI", 14));
         roleText.setFill(javafx.scene.paint.Color.web("#64748b"));
         profileInfo.getChildren().addAll(nameText, roleText);
@@ -94,7 +97,8 @@ public class UserProfileView extends HBox {
         TextField userIdField = new TextField("USR-2024-001");
         userIdField.setEditable(false);
         userIdField.setStyle("-fx-background-color: #f8fafc; -fx-text-fill: #64748b;");
-        TextField emailField = new TextField("john.cena@company.com");
+        TextField emailField = new TextField(UserManager.getCurrentUserEmail() != null ? 
+                                             UserManager.getCurrentUserEmail() : "guest@example.com");
         emailField.setEditable(false);
         emailField.setStyle("-fx-background-color: #f8fafc; -fx-text-fill: #64748b;");
         ComboBox<String> roleCombo = new ComboBox<>();

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Font?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+      fx:controller="com.roadster.controllers.MainController"
+      spacing="10" styleClass="main-container">
+
+    <!-- Header -->
+    <HBox alignment="CENTER" styleClass="header">
+        <Label text="Roadster Car Management System" styleClass="title-label"/>
+    </HBox>
+
+    <!-- Main Content -->
+    <SplitPane dividerPositions="0.6" VBox.vgrow="ALWAYS">
+        
+        <!-- Left Panel - Table -->
+        <VBox spacing="10">
+            <Label text="Car Inventory" styleClass="section-label"/>
+            <TableView fx:id="carTableView" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="brandColumn" text="Brand" prefWidth="100"/>
+                    <TableColumn fx:id="modelColumn" text="Model" prefWidth="120"/>
+                    <TableColumn fx:id="yearColumn" text="Year" prefWidth="80"/>
+                    <TableColumn fx:id="priceColumn" text="Price" prefWidth="100"/>
+                    <TableColumn fx:id="colorColumn" text="Color" prefWidth="80"/>
+                    <TableColumn fx:id="availableColumn" text="Available" prefWidth="80"/>
+                </columns>
+            </TableView>
+        </VBox>
+
+        <!-- Right Panel - Form -->
+        <VBox spacing="15" styleClass="form-panel">
+            <Label text="Car Details" styleClass="section-label"/>
+            
+            <GridPane hgap="10" vgap="10">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="NEVER" minWidth="80" prefWidth="100"/>
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="150" prefWidth="200"/>
+                </columnConstraints>
+
+                <!-- Brand -->
+                <Label text="Brand:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <TextField fx:id="brandField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                <!-- Model -->
+                <Label text="Model:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                <TextField fx:id="modelField" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                <!-- Year -->
+                <Label text="Year:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                <TextField fx:id="yearField" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                <!-- Price -->
+                <Label text="Price:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                <TextField fx:id="priceField" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                <!-- Color -->
+                <Label text="Color:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                <TextField fx:id="colorField" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+                <!-- Available -->
+                <Label text="Available:" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+                <CheckBox fx:id="availableCheckBox" selected="true" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+            </GridPane>
+
+            <!-- Buttons -->
+            <VBox spacing="10" styleClass="button-panel">
+                <HBox spacing="10" alignment="CENTER">
+                    <Button fx:id="addButton" text="Add Car" styleClass="primary-button"/>
+                    <Button fx:id="updateButton" text="Update Car" styleClass="secondary-button" disable="true"/>
+                </HBox>
+                <HBox spacing="10" alignment="CENTER">
+                    <Button fx:id="deleteButton" text="Delete Car" styleClass="danger-button" disable="true"/>
+                    <Button fx:id="clearButton" text="Clear Form" styleClass="secondary-button"/>
+                </HBox>
+            </VBox>
+
+            <!-- Status -->
+            <VBox spacing="5" styleClass="status-panel">
+                <Label text="Status:" styleClass="status-label"/>
+                <Label fx:id="statusLabel" text="Ready" styleClass="status-text"/>
+            </VBox>
+        </VBox>
+    </SplitPane>
+</VBox> 
