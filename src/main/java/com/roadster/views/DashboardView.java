@@ -2,6 +2,7 @@ package com.roadster.views;
 
 import com.roadster.components.SideBar;
 import com.roadster.controllers.MainController;
+import com.roadster.service.ApiService;
 import com.roadster.utils.UserManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -17,6 +18,8 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import java.util.List;
+import java.util.Map;
 
 public class DashboardView extends HBox {
 
@@ -28,6 +31,8 @@ public class DashboardView extends HBox {
     private Button profileButton;
     private PieChart trafficChart;
     private LineChart<String, Number> trendChart;
+    private VBox trafficStatsCard;
+    private VBox accidentStatsCard;
     private MainController mainController;
 
     public DashboardView(MainController mainController) {
@@ -59,30 +64,71 @@ public class DashboardView extends HBox {
     }
 
     private void setupCharts() {
-        // Traffic Pie Chart with more realistic data
-        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(
-                new PieChart.Data("Low Traffic", 25),
-                new PieChart.Data("Medium Traffic", 40),
-                new PieChart.Data("High Traffic", 35)
-        );
+        // Crime Data Pie Chart from API
+        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList();
+        
+        try {
+            // Fetch crime data from API
+            List<Map<String, Object>> crimeData = ApiService.fetchCrimeData();
+            
+            if (crimeData == null || crimeData.isEmpty()) {
+                throw new Exception("No crime data available");
+            }
+            
+            // Convert API data to pie chart data
+            for (Map<String, Object> crime : crimeData) {
+                String district = (String) crime.get("district");
+                Object countObj = crime.get("count");
+                
+                // Handle both String and Number types for count
+                Integer count = null;
+                if (countObj instanceof Number) {
+                    count = ((Number) countObj).intValue();
+                } else if (countObj instanceof String) {
+                    try {
+                        count = Integer.parseInt((String) countObj);
+                    } catch (NumberFormatException e) {
+                        System.err.println("Invalid count format: " + countObj);
+                        continue;
+                    }
+                }
+                
+                if (district != null && count != null) {
+                    pieChartData.add(new PieChart.Data(district, count));
+                }
+            }
+            
+        } catch (Exception e) {
+            System.err.println("Error loading crime data: " + e.getMessage());
+            // Fallback data if API fails
+            pieChartData.addAll(
+                new PieChart.Data("Chattogram", 2),
+                new PieChart.Data("Dhaka", 7),
+                new PieChart.Data("Sylhet", 1),
+                new PieChart.Data("Khulna", 3),
+                new PieChart.Data("Rajshahi", 2)
+            );
+        }
 
         trafficChart = new PieChart(pieChartData);
-        trafficChart.setTitle("Traffic Distribution");
+        trafficChart.setTitle("Crime Reports by District");
         trafficChart.setLabelsVisible(true);
         trafficChart.setLegendVisible(true);
-        // Remove setPrefSize(300, 200) to allow dynamic scaling
-        trafficChart.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE); // Allow chart to scale
+        trafficChart.setPrefSize(320, 260); // Smaller size to fit compact container
+        trafficChart.setMinSize(280, 220); // Smaller minimum size
+        trafficChart.setStyle("-fx-background-color: white; -fx-border-color: #cccccc; -fx-border-width: 1px;");
 
-        // Style the pie chart
-        for (PieChart.Data data : pieChartData) {
-            if (data.getName().equals("Low Traffic")) {
-                data.getNode().setStyle("-fx-pie-color: #27ae60;");
-            } else if (data.getName().equals("Medium Traffic")) {
-                data.getNode().setStyle("-fx-pie-color: #f39c12;");
-            } else if (data.getName().equals("High Traffic")) {
-                data.getNode().setStyle("-fx-pie-color: #e74c3c;");
+        // Apply colors after chart is added to scene (defer styling)
+        javafx.application.Platform.runLater(() -> {
+            String[] colors = {"#e74c3c", "#3498db", "#2ecc71", "#f39c12", "#9b59b6", "#1abc9c"};
+            int colorIndex = 0;
+            for (PieChart.Data data : pieChartData) {
+                if (colorIndex < colors.length && data.getNode() != null) {
+                    data.getNode().setStyle("-fx-pie-color: " + colors[colorIndex] + ";");
+                    colorIndex++;
+                }
             }
-        }
+        });
 
         // Trend Line Chart with more realistic data
         CategoryAxis xAxis = new CategoryAxis();
@@ -113,7 +159,7 @@ public class DashboardView extends HBox {
         accidentSeries.getData().add(new XYChart.Data<>("6 PM", 35));
         accidentSeries.getData().add(new XYChart.Data<>("9 PM", 10));
 
-        trendChart.getData().addAll(trafficSeries, accidentSeries);
+        trendChart.getData().addAll(trafficSeries);
 
         // Style the line chart
         trendChart.setStyle("-fx-background-color: white; -fx-border-color: #e0e0e0; -fx-border-width: 1;");
@@ -209,8 +255,10 @@ public class DashboardView extends HBox {
 
         // Add cards to grid with row and column constraints
         grid.add(createTrafficChartCard(), 0, 0, 1, 2); // Spans 2 rows
-        grid.add(createTrafficStatsCard(), 1, 0);
-        grid.add(createAccidentStatsCard(), 1, 1);
+        trafficStatsCard = createTrafficStatsCard();
+        grid.add(trafficStatsCard, 1, 0);
+        accidentStatsCard = createAccidentStatsCard();
+        grid.add(accidentStatsCard, 1, 1);
         grid.add(createStatCard("Live Traffic Alert", trendChart), 0, 2);
         grid.add(createIncidentAnalysisCard(), 1, 2);
         grid.add(createNavigationCard("Drivers List", "🚗", "#27ae60"), 0, 3);
@@ -260,19 +308,64 @@ public class DashboardView extends HBox {
 
         VBox statsContainer = new VBox(15);
 
-        // Traffic Congestion
-        HBox trafficItem = createStatItem("🚦", "Traffic Congestion", "48%", "High");
+        try {
+            // Get selected district from combo box
+            String selectedDistrict = cityDropdown.getValue();
+            if (selectedDistrict == null || selectedDistrict.equals("All Districts")) {
+                selectedDistrict = "Dhaka"; // Default to Dhaka if All Districts is selected
+            }
 
-        // Accident Rate
-        HBox accidentItem = createStatItem("⚠️", "Accident Rate", "12%", "Low");
+            // Fetch traffic data from API
+            List<Map<String, Object>> trafficData = ApiService.fetchTrafficByDistrict(selectedDistrict);
 
-        // Response Time
-        HBox responseItem = createStatItem("⏱️", "Response Time", "3.2 min", "Good");
+            // Create stat items from API data
+            for (Map<String, Object> traffic : trafficData) {
+                String trafficLevel = (String) traffic.get("trafficLevel");
+                Object countObj = traffic.get("areaCount");
+                
+                String count = "";
+                if (countObj instanceof Number) {
+                    count = String.valueOf(((Number) countObj).intValue());
+                } else if (countObj instanceof String) {
+                    count = (String) countObj;
+                }
 
-        statsContainer.getChildren().addAll(trafficItem, accidentItem, responseItem);
+                String icon = getTrafficIcon(trafficLevel);
+                String label = trafficLevel != null ? trafficLevel : "Unknown";
+                String value = count + " areas";
+                String sublabel = "Current Status";
+
+                HBox trafficItem = createStatItem(icon, label, value, sublabel);
+                statsContainer.getChildren().add(trafficItem);
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error loading traffic statistics: " + e.getMessage());
+            // Fallback static items
+            HBox highTrafficItem = createStatItem("🚦", "High Traffic", "6 areas", "Current Status");
+            HBox mediumTrafficItem = createStatItem("⚠️", "Medium Traffic", "7 areas", "Current Status");
+            HBox lowTrafficItem = createStatItem("✅", "Low Traffic", "3 areas", "Current Status");
+            
+            statsContainer.getChildren().addAll(highTrafficItem, mediumTrafficItem, lowTrafficItem);
+        }
+
         card.getChildren().addAll(title, statsContainer);
-
         return card;
+    }
+
+    private String getTrafficIcon(String trafficLevel) {
+        if (trafficLevel == null) return "🚦";
+        
+        switch (trafficLevel.toLowerCase()) {
+            case "high traffic":
+                return "🚦";
+            case "medium traffic":
+                return "⚠️";
+            case "low traffic":
+                return "✅";
+            default:
+                return "🚦";
+        }
     }
 
     private VBox createAccidentStatsCard() {
@@ -282,24 +375,54 @@ public class DashboardView extends HBox {
         card.setPrefWidth(300);
         card.setPrefHeight(200);
 
-        Text title = new Text("Accident Statistics");
+        Text title = new Text("Accident Reports");
         title.setFont(Font.font("Segoe UI", FontWeight.BOLD, 16));
         title.setFill(Color.valueOf("#2c3e50"));
 
         VBox statsContainer = new VBox(15);
 
-        // Total Accidents
-        HBox totalItem = createStatItem("📊", "Total Accidents", "156", "This Month");
+        try {
+            // Get selected district from combo box
+            String selectedDistrict = cityDropdown.getValue();
+            if (selectedDistrict == null || selectedDistrict.equals("All Districts")) {
+                selectedDistrict = "Dhaka"; // Default to Dhaka if All Districts is selected
+            }
 
-        // Fatal Accidents
-        HBox fatalItem = createStatItem("💀", "Fatal Accidents", "8", "This Month");
+            // Fetch reports data from API
+            List<Map<String, Object>> reportsData = ApiService.fetchReportsByDistrict(selectedDistrict);
 
-        // Injury Accidents
-        HBox injuryItem = createStatItem("🏥", "Injury Accidents", "45", "This Month");
+            // Create stat items from API data
+            for (Map<String, Object> report : reportsData) {
+                String locationName = (String) report.get("name");
+                Object countObj = report.get("count");
+                
+                String count = "";
+                if (countObj instanceof Number) {
+                    count = String.valueOf(((Number) countObj).intValue());
+                } else if (countObj instanceof String) {
+                    count = (String) countObj;
+                }
 
-        statsContainer.getChildren().addAll(totalItem, fatalItem, injuryItem);
+                String icon = "🚨"; // Emergency icon for all reports
+                String label = locationName != null ? locationName : "Unknown Location";
+                String value = count + " report" + (Integer.parseInt(count) != 1 ? "s" : "");
+                String sublabel = "Current Status";
+
+                HBox reportItem = createStatItem(icon, label, value, sublabel);
+                statsContainer.getChildren().add(reportItem);
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error loading accident reports: " + e.getMessage());
+            // Fallback static items
+            HBox gecItem = createStatItem("🚨", "GEC Circle Intersection", "1 report", "Current Status");
+            HBox panchlaishItem = createStatItem("🚨", "Panchlaish Model Thana", "1 report", "Current Status");
+            HBox kotwaliItem = createStatItem("🚨", "Kotwali Thana", "1 report", "Current Status");
+            
+            statsContainer.getChildren().addAll(gecItem, panchlaishItem, kotwaliItem);
+        }
+
         card.getChildren().addAll(title, statsContainer);
-
         return card;
     }
 
@@ -369,52 +492,160 @@ public class DashboardView extends HBox {
         String selectedCity = cityDropdown.getValue();
         System.out.println("City changed to: " + selectedCity);
         selectedCityIndex = cityDropdown.getSelectionModel().getSelectedIndex();
-        // TODO: Update dashboard data based on selected city
+        
+        // Refresh both traffic and accident stats cards with new district data
+        refreshTrafficStatsCard();
+        refreshAccidentStatsCard();
+    }
+
+    private void refreshTrafficStatsCard() {
+        if (trafficStatsCard != null) {
+            // Clear existing content except title
+            trafficStatsCard.getChildren().clear();
+            
+            // Re-add title
+            Text title = new Text("Traffic Statistics");
+            title.setFont(Font.font("Segoe UI", FontWeight.BOLD, 16));
+            title.setFill(Color.valueOf("#2c3e50"));
+            
+            VBox statsContainer = new VBox(15);
+            
+            try {
+                // Get selected district from combo box
+                String selectedDistrict = cityDropdown.getValue();
+                if (selectedDistrict == null || selectedDistrict.equals("All Districts")) {
+                    selectedDistrict = "Dhaka"; // Default to Dhaka if All Districts is selected
+                }
+
+                // Fetch traffic data from API
+                List<Map<String, Object>> trafficData = ApiService.fetchTrafficByDistrict(selectedDistrict);
+
+                // Create stat items from API data
+                for (Map<String, Object> traffic : trafficData) {
+                    String trafficLevel = (String) traffic.get("trafficLevel");
+                    Object countObj = traffic.get("areaCount");
+                    
+                    String count = "";
+                    if (countObj instanceof Number) {
+                        count = String.valueOf(((Number) countObj).intValue());
+                    } else if (countObj instanceof String) {
+                        count = (String) countObj;
+                    }
+
+                    String icon = getTrafficIcon(trafficLevel);
+                    String label = trafficLevel != null ? trafficLevel : "Unknown";
+                    String value = count + " areas";
+                    String sublabel = "Current Status";
+
+                    HBox trafficItem = createStatItem(icon, label, value, sublabel);
+                    statsContainer.getChildren().add(trafficItem);
+                }
+
+            } catch (Exception e) {
+                System.err.println("Error loading traffic statistics: " + e.getMessage());
+                // Fallback static items
+                HBox highTrafficItem = createStatItem("🚦", "High Traffic", "6 areas", "Current Status");
+                HBox mediumTrafficItem = createStatItem("⚠️", "Medium Traffic", "7 areas", "Current Status");
+                HBox lowTrafficItem = createStatItem("✅", "Low Traffic", "3 areas", "Current Status");
+                
+                statsContainer.getChildren().addAll(highTrafficItem, mediumTrafficItem, lowTrafficItem);
+            }
+            
+            trafficStatsCard.getChildren().addAll(title, statsContainer);
+        }
+    }
+
+    private void refreshAccidentStatsCard() {
+        if (accidentStatsCard != null) {
+            // Clear existing content
+            accidentStatsCard.getChildren().clear();
+            
+            // Re-add title
+            Text title = new Text("Accident Reports");
+            title.setFont(Font.font("Segoe UI", FontWeight.BOLD, 16));
+            title.setFill(Color.valueOf("#2c3e50"));
+            
+            VBox statsContainer = new VBox(15);
+            
+            try {
+                // Get selected district from combo box
+                String selectedDistrict = cityDropdown.getValue();
+                if (selectedDistrict == null || selectedDistrict.equals("All Districts")) {
+                    selectedDistrict = "Dhaka"; // Default to Dhaka if All Districts is selected
+                }
+
+                // Fetch reports data from API
+                List<Map<String, Object>> reportsData = ApiService.fetchReportsByDistrict(selectedDistrict);
+
+                // Create stat items from API data
+                for (Map<String, Object> report : reportsData) {
+                    String locationName = (String) report.get("name");
+                    Object countObj = report.get("count");
+                    
+                    String count = "";
+                    if (countObj instanceof Number) {
+                        count = String.valueOf(((Number) countObj).intValue());
+                    } else if (countObj instanceof String) {
+                        count = (String) countObj;
+                    }
+
+                    String icon = "🚨"; // Emergency icon for all reports
+                    String label = locationName != null ? locationName : "Unknown Location";
+                    String value = count + " report" + (Integer.parseInt(count) != 1 ? "s" : "");
+                    String sublabel = "Current Status";
+
+                    HBox reportItem = createStatItem(icon, label, value, sublabel);
+                    statsContainer.getChildren().add(reportItem);
+                }
+
+            } catch (Exception e) {
+                System.err.println("Error loading accident reports: " + e.getMessage());
+                // Fallback static items
+                HBox gecItem = createStatItem("🚨", "GEC Circle Intersection", "1 report", "Current Status");
+                HBox panchlaishItem = createStatItem("🚨", "Panchlaish Model Thana", "1 report", "Current Status");
+                HBox kotwaliItem = createStatItem("🚨", "Kotwali Thana", "1 report", "Current Status");
+                
+                statsContainer.getChildren().addAll(gecItem, panchlaishItem, kotwaliItem);
+            }
+            
+            accidentStatsCard.getChildren().addAll(title, statsContainer);
+        }
     }
 
     private VBox createTrafficChartCard() {
-        VBox card = new VBox(10); // Reduced spacing for tighter layout
-        card.setPadding(new Insets(20));
+        VBox card = new VBox(8); // Reduced spacing for more compact layout
+        card.setPadding(new Insets(15)); // Reduced padding to save space
         card.getStyleClass().add("stat-card");
-        card.setPrefWidth(400); // Keep preferred width
+        card.setPrefWidth(300); // Smaller width to reduce white space
         card.setMaxWidth(Double.MAX_VALUE); // Allow expansion
         card.setMaxHeight(Double.MAX_VALUE); // Allow expansion
-        card.setAlignment(Pos.TOP_LEFT); // Push content to the top
+        card.setAlignment(Pos.CENTER); // Center content vertically
 
-        Text title = new Text("Traffic Chart");
-        title.setFont(Font.font("Segoe UI", FontWeight.BOLD, 18));
+        Text title = new Text("Crime Reports by District");
+        title.setFont(Font.font("Segoe UI", FontWeight.BOLD, 16)); // Slightly smaller title
         title.setFill(Color.valueOf("#2c3e50"));
 
-        // Chart container
+        // Chart container with explicit styling to ensure visibility
         VBox chartContainer = new VBox(5);
-        chartContainer.getChildren().add(trafficChart);
-        // No fixed prefSize, let it scale with parent
+        chartContainer.setAlignment(Pos.CENTER);
+        chartContainer.setPrefHeight(280); // Reduced height to save space
+        chartContainer.setMaxHeight(Region.USE_PREF_SIZE); // Don't grow beyond preferred height
+        chartContainer.setStyle("-fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-width: 1px; -fx-border-radius: 5px;");
+        
+        // Make chartContainer grow to fill available space for proper centering
+        VBox.setVgrow(chartContainer, Priority.ALWAYS);
+        
+        if (trafficChart != null) {
+            chartContainer.getChildren().add(trafficChart);
+        } else {
+            Text errorText = new Text("Loading Crime Data Chart...");
+            errorText.setFont(Font.font("Segoe UI", 14));
+            errorText.setFill(Color.GRAY);
+            chartContainer.getChildren().add(errorText);
+        }
 
-        // Crime rate stats
-        HBox crimeStats = new HBox(15);
-        crimeStats.setAlignment(Pos.CENTER_LEFT);
-
-        Circle crimeIcon = new Circle(8);
-        crimeIcon.setFill(Color.valueOf("#e74c3c"));
-
-        VBox crimeInfo = new VBox(2);
-        Text crimeLabel = new Text("Crime Rate");
-        crimeLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 14));
-        crimeLabel.setFill(Color.valueOf("#2c3e50"));
-
-        Text crimeValue = new Text("30%");
-        crimeValue.setFont(Font.font("Segoe UI", FontWeight.BOLD, 20));
-        crimeValue.setFill(Color.valueOf("#e74c3c"));
-
-        Text crimeSub = new Text("Summer Zone");
-        crimeSub.setFont(Font.font("Segoe UI", 10));
-        crimeSub.setFill(Color.valueOf("#7f8c8d"));
-
-        crimeInfo.getChildren().addAll(crimeLabel, crimeValue, crimeSub);
-        crimeStats.getChildren().addAll(crimeIcon, crimeInfo);
-
-        // Add components to card
-        card.getChildren().addAll(title, chartContainer, crimeStats);
+        // Add components to card (removed crime rate stats)
+        card.getChildren().addAll(title, chartContainer);
 
         return card;
     }
