@@ -14,7 +14,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.scene.shape.Rectangle;
+
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
@@ -30,9 +30,10 @@ public class DashboardView extends HBox {
     private TextField searchField;
     private Button profileButton;
     private PieChart trafficChart;
-    private LineChart<String, Number> trendChart;
+    private VBox crimeRateStatsCard;
     private VBox trafficStatsCard;
     private VBox accidentStatsCard;
+    private VBox areaCongestionCard;
     private MainController mainController;
 
     public DashboardView(MainController mainController) {
@@ -130,39 +131,11 @@ public class DashboardView extends HBox {
             }
         });
 
-        // Trend Line Chart with more realistic data
-        CategoryAxis xAxis = new CategoryAxis();
-        NumberAxis yAxis = new NumberAxis(0, 100, 10);
-        xAxis.setLabel("Time");
-        yAxis.setLabel("Traffic Level (%)");
-
-        trendChart = new LineChart<>(xAxis, yAxis);
-        trendChart.setTitle("Live Traffic Alert");
-        trendChart.setPrefSize(400, 250);
-
-        // Add multiple series for different metrics
-        XYChart.Series<String, Number> trafficSeries = new XYChart.Series<>();
-        trafficSeries.setName("Traffic Congestion");
-        trafficSeries.getData().add(new XYChart.Data<>("6 AM", 15));
-        trafficSeries.getData().add(new XYChart.Data<>("9 AM", 85));
-        trafficSeries.getData().add(new XYChart.Data<>("12 PM", 65));
-        trafficSeries.getData().add(new XYChart.Data<>("3 PM", 75));
-        trafficSeries.getData().add(new XYChart.Data<>("6 PM", 95));
-        trafficSeries.getData().add(new XYChart.Data<>("9 PM", 45));
-
-        XYChart.Series<String, Number> accidentSeries = new XYChart.Series<>();
-        accidentSeries.setName("Accident Density");
-        accidentSeries.getData().add(new XYChart.Data<>("6 AM", 5));
-        accidentSeries.getData().add(new XYChart.Data<>("9 AM", 25));
-        accidentSeries.getData().add(new XYChart.Data<>("12 PM", 15));
-        accidentSeries.getData().add(new XYChart.Data<>("3 PM", 20));
-        accidentSeries.getData().add(new XYChart.Data<>("6 PM", 35));
-        accidentSeries.getData().add(new XYChart.Data<>("9 PM", 10));
-
-        trendChart.getData().addAll(trafficSeries);
-
-        // Style the line chart
-        trendChart.setStyle("-fx-background-color: white; -fx-border-color: #e0e0e0; -fx-border-width: 1;");
+        // Initialize crime rate stats card (will be created in layout)
+        crimeRateStatsCard = createCrimeRateStatsCard();
+        
+        // Initialize area congestion stats card
+        areaCongestionCard = createAreaCongestionCard();
     }
 
     private void setupLayout() {
@@ -259,11 +232,11 @@ public class DashboardView extends HBox {
         grid.add(trafficStatsCard, 1, 0);
         accidentStatsCard = createAccidentStatsCard();
         grid.add(accidentStatsCard, 1, 1);
-        grid.add(createStatCard("Live Traffic Alert", trendChart), 0, 2);
-        grid.add(createIncidentAnalysisCard(), 1, 2);
+        grid.add(crimeRateStatsCard, 0, 2);
+        grid.add(areaCongestionCard, 1, 2);
         grid.add(createNavigationCard("Drivers List", "🚗", "#27ae60"), 0, 3);
         grid.add(createPoliceBoxCard(), 1, 3); // Added Police Box card
-        grid.add(createHighlightCard(), 0, 4, 2, 1); // Spans 2 columns
+        grid.add(createReportBoxCard(), 0, 4, 2, 1); // Spans 2 columns
 
         // Wrap grid in a ScrollPane
         ScrollPane scrollPane = new ScrollPane(grid);
@@ -493,9 +466,11 @@ public class DashboardView extends HBox {
         System.out.println("City changed to: " + selectedCity);
         selectedCityIndex = cityDropdown.getSelectionModel().getSelectedIndex();
         
-        // Refresh both traffic and accident stats cards with new district data
+        // Refresh traffic, accident stats cards, crime rate stats card, and area congestion card with new district data
         refreshTrafficStatsCard();
         refreshAccidentStatsCard();
+        refreshCrimeRateStatsCard();
+        refreshAreaCongestionCard();
     }
 
     private void refreshTrafficStatsCard() {
@@ -612,6 +587,160 @@ public class DashboardView extends HBox {
         }
     }
 
+    private VBox createCrimeRateStatsCard() {
+        VBox card = new VBox(15);
+        card.setPadding(new Insets(20));
+        card.getStyleClass().add("stat-card");
+        card.setPrefWidth(300);
+
+        Text title = new Text("Area Crime Rates");
+        title.setFont(Font.font("Segoe UI", FontWeight.BOLD, 16));
+        title.setFill(Color.valueOf("#2c3e50"));
+        
+        VBox statsContainer = new VBox(15);
+        
+        try {
+            // Get selected district from combo box
+            String selectedDistrict = cityDropdown != null ? cityDropdown.getValue() : "Dhaka";
+            if (selectedDistrict == null || selectedDistrict.equals("All Districts")) {
+                selectedDistrict = "Dhaka"; // Default to Dhaka if All Districts is selected
+            }
+
+            // Fetch crime rate data from API
+            List<Map<String, Object>> crimeRateData = ApiService.fetchAreaCrimeRatesByDistrict(selectedDistrict);
+
+            // Create stat items from API data (limit to first 8 items for better display)
+            int count = 0;
+            for (Map<String, Object> crimeRate : crimeRateData) {
+                if (count >= 8) break; // Limit to 8 areas for better card layout
+                
+                String areaName = (String) crimeRate.get("name");
+                Object rateObj = crimeRate.get("crimeRate");
+                
+                // Handle both Double and String types for crime rate
+                Double rate = null;
+                if (rateObj instanceof Number) {
+                    rate = ((Number) rateObj).doubleValue();
+                } else if (rateObj instanceof String) {
+                    try {
+                        rate = Double.parseDouble((String) rateObj);
+                    } catch (NumberFormatException e) {
+                        System.err.println("Invalid crime rate format: " + rateObj);
+                        continue;
+                    }
+                }
+                
+                if (areaName != null && rate != null) {
+                    String rateDisplay = String.format("%.3f", rate);
+                    String icon = getCrimeRateIcon(rate);
+                    HBox crimeRateItem = createStatItem(icon, areaName, rateDisplay, "Crime Rate");
+                    statsContainer.getChildren().add(crimeRateItem);
+                    count++;
+                }
+            }
+
+            System.out.println("Loaded " + count + " crime rate data points for district: " + selectedDistrict);
+
+        } catch (Exception e) {
+            System.err.println("Error loading crime rate data: " + e.getMessage());
+            
+            // Fallback data if API fails
+            HBox mirpurItem = createStatItem("🔴", "Mirpur", "0.150", "Crime Rate");
+            HBox gulshanItem = createStatItem("🟢", "Gulshan", "0.050", "Crime Rate");
+            HBox dhanmondiItem = createStatItem("🟠", "Dhanmondi", "0.140", "Crime Rate");
+            HBox tejgaonItem = createStatItem("🔴", "Tejgaon", "0.180", "Crime Rate");
+            HBox uttaraItem = createStatItem("🟠", "Uttara", "0.100", "Crime Rate");
+            HBox baddaItem = createStatItem("🟠", "Badda", "0.100", "Crime Rate");
+            
+            statsContainer.getChildren().addAll(mirpurItem, gulshanItem, dhanmondiItem, tejgaonItem, uttaraItem, baddaItem);
+        }
+        
+        card.getChildren().addAll(title, statsContainer);
+        return card;
+    }
+
+    private String getCrimeRateIcon(double rate) {
+        if (rate <= 0.05) {
+            return "🟢"; // Green circle for very low crime rate
+        } else if (rate <= 0.10) {
+            return "🟡"; // Yellow circle for low crime rate
+        } else if (rate <= 0.15) {
+            return "🟠"; // Orange circle for medium crime rate
+        } else {
+            return "🔴"; // Red circle for high crime rate
+        }
+    }
+
+    private void refreshCrimeRateStatsCard() {
+        if (crimeRateStatsCard != null) {
+            // Clear existing content
+            crimeRateStatsCard.getChildren().clear();
+            
+            // Re-add title
+            Text title = new Text("Area Crime Rates");
+            title.setFont(Font.font("Segoe UI", FontWeight.BOLD, 16));
+            title.setFill(Color.valueOf("#2c3e50"));
+            
+            VBox statsContainer = new VBox(15);
+            
+            try {
+                // Get selected district from combo box
+                String selectedDistrict = cityDropdown.getValue();
+                if (selectedDistrict == null || selectedDistrict.equals("All Districts")) {
+                    selectedDistrict = "Dhaka"; // Default to Dhaka if All Districts is selected
+                }
+
+                // Fetch crime rate data from API
+                List<Map<String, Object>> crimeRateData = ApiService.fetchAreaCrimeRatesByDistrict(selectedDistrict);
+
+                // Create stat items from API data (limit to first 8 items for better display)
+                int count = 0;
+                for (Map<String, Object> crimeRate : crimeRateData) {
+                    if (count >= 8) break; // Limit to 8 areas for better card layout
+                    
+                    String areaName = (String) crimeRate.get("name");
+                    Object rateObj = crimeRate.get("crimeRate");
+                    
+                    // Handle both Double and String types for crime rate
+                    Double rate = null;
+                    if (rateObj instanceof Number) {
+                        rate = ((Number) rateObj).doubleValue();
+                    } else if (rateObj instanceof String) {
+                        try {
+                            rate = Double.parseDouble((String) rateObj);
+                        } catch (NumberFormatException e) {
+                            System.err.println("Invalid crime rate format: " + rateObj);
+                            continue;
+                        }
+                    }
+                    
+                    if (areaName != null && rate != null) {
+                        String rateDisplay = String.format("%.3f", rate);
+                        String icon = getCrimeRateIcon(rate);
+                        HBox crimeRateItem = createStatItem(icon, areaName, rateDisplay, "Crime Rate");
+                        statsContainer.getChildren().add(crimeRateItem);
+                        count++;
+                    }
+                }
+
+            } catch (Exception e) {
+                System.err.println("Error loading crime rate data: " + e.getMessage());
+                
+                // Fallback data if API fails
+                HBox mirpurItem = createStatItem("🔴", "Mirpur", "0.150", "Crime Rate");
+                HBox gulshanItem = createStatItem("🟢", "Gulshan", "0.050", "Crime Rate");
+                HBox dhanmondiItem = createStatItem("🟠", "Dhanmondi", "0.140", "Crime Rate");
+                HBox tejgaonItem = createStatItem("🔴", "Tejgaon", "0.180", "Crime Rate");
+                
+                statsContainer.getChildren().addAll(mirpurItem, gulshanItem, dhanmondiItem, tejgaonItem);
+            }
+            
+            crimeRateStatsCard.getChildren().addAll(title, statsContainer);
+        }
+    }
+
+
+
     private VBox createTrafficChartCard() {
         VBox card = new VBox(8); // Reduced spacing for more compact layout
         card.setPadding(new Insets(15)); // Reduced padding to save space
@@ -650,61 +779,156 @@ public class DashboardView extends HBox {
         return card;
     }
 
-    private VBox createIncidentAnalysisCard() {
+    private VBox createAreaCongestionCard() {
         VBox card = new VBox(15);
         card.setPadding(new Insets(20));
         card.getStyleClass().add("stat-card");
         card.setPrefWidth(300);
-        card.setPrefHeight(200);
 
-        Text title = new Text("Incident Analysis");
+        Text title = new Text("Area Congestion Levels");
         title.setFont(Font.font("Segoe UI", FontWeight.BOLD, 16));
         title.setFill(Color.valueOf("#2c3e50"));
+        
+        VBox statsContainer = new VBox(15);
+        
+        try {
+            // Get selected district from combo box
+            String selectedDistrict = cityDropdown != null ? cityDropdown.getValue() : "Dhaka";
+            if (selectedDistrict == null || selectedDistrict.equals("All Districts")) {
+                selectedDistrict = "Dhaka"; // Default to Dhaka if All Districts is selected
+            }
 
-        // Percentage stats
-        HBox percentageStats = new HBox(20);
-        percentageStats.setAlignment(Pos.CENTER);
+            // Fetch congestion data from API
+            List<Map<String, Object>> congestionData = ApiService.fetchAreaCongestionByDistrict(selectedDistrict);
 
-        VBox morningStats = new VBox(5);
-        morningStats.setAlignment(Pos.CENTER);
-        Text morningValue = new Text("25%");
-        morningValue.setFont(Font.font("Segoe UI", FontWeight.BOLD, 18));
-        morningValue.setFill(Color.valueOf("#3498db"));
-        Text morningLabel = new Text("Morning");
-        morningLabel.setFont(Font.font("Segoe UI", 12));
-        morningLabel.setFill(Color.valueOf("#7f8c8d"));
-        morningStats.getChildren().addAll(morningValue, morningLabel);
+            // Create stat items from API data (limit to first 8 items for better display)
+            int count = 0;
+            for (Map<String, Object> congestion : congestionData) {
+                if (count >= 8) break; // Limit to 8 areas for better card layout
+                
+                String areaName = (String) congestion.get("name");
+                Object levelObj = congestion.get("congestionLevel");
+                
+                // Handle both Double and String types for congestion level
+                Double level = null;
+                if (levelObj instanceof Number) {
+                    level = ((Number) levelObj).doubleValue();
+                } else if (levelObj instanceof String) {
+                    try {
+                        level = Double.parseDouble((String) levelObj);
+                    } catch (NumberFormatException e) {
+                        System.err.println("Invalid congestion level format: " + levelObj);
+                        continue;
+                    }
+                }
+                
+                if (areaName != null && level != null) {
+                    String levelDisplay = String.format("%.2f", level);
+                    String icon = getCongestionIcon(level);
+                    HBox congestionItem = createStatItem(icon, areaName, levelDisplay, "Congestion");
+                    statsContainer.getChildren().add(congestionItem);
+                    count++;
+                }
+            }
 
-        VBox eveningStats = new VBox(5);
-        eveningStats.setAlignment(Pos.CENTER);
-        Text eveningValue = new Text("35%");
-        eveningValue.setFont(Font.font("Segoe UI", FontWeight.BOLD, 18));
-        eveningValue.setFill(Color.valueOf("#e74c3c"));
-        Text eveningLabel = new Text("Evening");
-        eveningLabel.setFont(Font.font("Segoe UI", 12));
-        eveningLabel.setFill(Color.valueOf("#7f8c8d"));
-        eveningStats.getChildren().addAll(eveningValue, eveningLabel);
+            System.out.println("Loaded " + count + " congestion data points for district: " + selectedDistrict);
 
-        percentageStats.getChildren().addAll(morningStats, eveningStats);
-
-        // Simple bar representation
-        HBox barContainer = new HBox(10);
-        barContainer.setAlignment(Pos.CENTER);
-
-        Rectangle morningBar = new Rectangle(60, 20);
-        morningBar.setFill(Color.valueOf("#3498db"));
-        morningBar.setArcWidth(5);
-        morningBar.setArcHeight(5);
-
-        Rectangle eveningBar = new Rectangle(84, 20);
-        eveningBar.setFill(Color.valueOf("#e74c3c"));
-        eveningBar.setArcWidth(5);
-        eveningBar.setArcHeight(5);
-
-        barContainer.getChildren().addAll(morningBar, eveningBar);
-
-        card.getChildren().addAll(title, percentageStats, barContainer);
+        } catch (Exception e) {
+            System.err.println("Error loading congestion data: " + e.getMessage());
+            
+            // Fallback data if API fails
+            HBox mirpurItem = createStatItem("🔴", "Mirpur", "0.80", "Congestion");
+            HBox gulshanItem = createStatItem("🟡", "Gulshan", "0.60", "Congestion");
+            HBox dhanmondiItem = createStatItem("🔴", "Dhanmondi", "0.80", "Congestion");
+            HBox tejgaonItem = createStatItem("🔴", "Tejgaon", "0.90", "Congestion");
+            HBox uttaraItem = createStatItem("🟡", "Uttara", "0.60", "Congestion");
+            HBox baddaItem = createStatItem("🟠", "Badda", "0.70", "Congestion");
+            
+            statsContainer.getChildren().addAll(mirpurItem, gulshanItem, dhanmondiItem, tejgaonItem, uttaraItem, baddaItem);
+        }
+        
+        card.getChildren().addAll(title, statsContainer);
         return card;
+    }
+
+    private String getCongestionIcon(double level) {
+        if (level <= 0.5) {
+            return "🟢"; // Green circle for low congestion
+        } else if (level <= 0.7) {
+            return "🟡"; // Yellow circle for moderate congestion
+        } else if (level <= 0.8) {
+            return "🟠"; // Orange circle for high congestion
+        } else {
+            return "🔴"; // Red circle for very high congestion
+        }
+    }
+
+    private void refreshAreaCongestionCard() {
+        if (areaCongestionCard != null) {
+            // Clear existing content
+            areaCongestionCard.getChildren().clear();
+            
+            // Re-add title
+            Text title = new Text("Area Congestion Levels");
+            title.setFont(Font.font("Segoe UI", FontWeight.BOLD, 16));
+            title.setFill(Color.valueOf("#2c3e50"));
+            
+            VBox statsContainer = new VBox(15);
+            
+            try {
+                // Get selected district from combo box
+                String selectedDistrict = cityDropdown.getValue();
+                if (selectedDistrict == null || selectedDistrict.equals("All Districts")) {
+                    selectedDistrict = "Dhaka"; // Default to Dhaka if All Districts is selected
+                }
+
+                // Fetch congestion data from API
+                List<Map<String, Object>> congestionData = ApiService.fetchAreaCongestionByDistrict(selectedDistrict);
+
+                // Create stat items from API data (limit to first 8 items for better display)
+                int count = 0;
+                for (Map<String, Object> congestion : congestionData) {
+                    if (count >= 8) break; // Limit to 8 areas for better card layout
+                    
+                    String areaName = (String) congestion.get("name");
+                    Object levelObj = congestion.get("congestionLevel");
+                    
+                    // Handle both Double and String types for congestion level
+                    Double level = null;
+                    if (levelObj instanceof Number) {
+                        level = ((Number) levelObj).doubleValue();
+                    } else if (levelObj instanceof String) {
+                        try {
+                            level = Double.parseDouble((String) levelObj);
+                        } catch (NumberFormatException e) {
+                            System.err.println("Invalid congestion level format: " + levelObj);
+                            continue;
+                        }
+                    }
+                    
+                    if (areaName != null && level != null) {
+                        String levelDisplay = String.format("%.2f", level);
+                        String icon = getCongestionIcon(level);
+                        HBox congestionItem = createStatItem(icon, areaName, levelDisplay, "Congestion");
+                        statsContainer.getChildren().add(congestionItem);
+                        count++;
+                    }
+                }
+
+            } catch (Exception e) {
+                System.err.println("Error loading congestion data: " + e.getMessage());
+                
+                // Fallback data if API fails
+                HBox mirpurItem = createStatItem("🔴", "Mirpur", "0.80", "Congestion");
+                HBox gulshanItem = createStatItem("🟡", "Gulshan", "0.60", "Congestion");
+                HBox dhanmondiItem = createStatItem("🔴", "Dhanmondi", "0.80", "Congestion");
+                HBox tejgaonItem = createStatItem("🔴", "Tejgaon", "0.90", "Congestion");
+                
+                statsContainer.getChildren().addAll(mirpurItem, gulshanItem, dhanmondiItem, tejgaonItem);
+            }
+            
+            areaCongestionCard.getChildren().addAll(title, statsContainer);
+        }
     }
 
     private VBox createNavigationCard(String title, String icon, String color) {
@@ -783,7 +1007,7 @@ public class DashboardView extends HBox {
         return card;
     }
 
-    private VBox createHighlightCard() {
+    private VBox createReportBoxCard() {
         VBox card = new VBox(15);
         card.setPadding(new Insets(20));
         card.getStyleClass().add("stat-card");
@@ -793,28 +1017,76 @@ public class DashboardView extends HBox {
         HBox header = new HBox();
         header.setAlignment(Pos.CENTER_LEFT);
 
-        Text title = new Text("Highlight");
+        Text title = new Text("Report an Incident");
         title.setFont(Font.font("Segoe UI", FontWeight.BOLD, 16));
         title.setFill(Color.valueOf("#2c3e50"));
 
         HBox.setHgrow(title, Priority.ALWAYS);
         header.getChildren().add(title);
 
-        // Highlight content
-        VBox highlightContent = new VBox(10);
-        highlightContent.setAlignment(Pos.CENTER);
+        // Report content
+        VBox reportContent = new VBox(15);
+        reportContent.setAlignment(Pos.CENTER);
 
-        Text highlightText = new Text("🚨 Emergency Response Time: 2.3 minutes");
-        highlightText.setFont(Font.font("Segoe UI", FontWeight.BOLD, 14));
-        highlightText.setFill(Color.valueOf("#27ae60"));
+        Text reportText = new Text("� Seen something that needs attention?");
+        reportText.setFont(Font.font("Segoe UI", FontWeight.BOLD, 16));
+        reportText.setFill(Color.valueOf("#3498db"));
 
-        Text subText = new Text("All systems operational • Last updated: 2 minutes ago");
+        Text subText = new Text("Help improve road safety by reporting incidents in " + 
+                               (cityDropdown.getValue() != null ? cityDropdown.getValue() : "your city"));
         subText.setFont(Font.font("Segoe UI", 12));
         subText.setFill(Color.valueOf("#7f8c8d"));
+        subText.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
 
-        highlightContent.getChildren().addAll(highlightText, subText);
+        // Create report button
+        Button reportButton = new Button("Report Now");
+        reportButton.setPrefWidth(200);
+        reportButton.setPrefHeight(40);
+        reportButton.setStyle(
+            "-fx-background-color: #3498db;" +
+            "-fx-text-fill: white;" +
+            "-fx-font-weight: bold;" +
+            "-fx-background-radius: 8;" +
+            "-fx-cursor: hand;" +
+            "-fx-font-size: 14px;"
+        );
 
-        card.getChildren().addAll(header, highlightContent);
+        // Add hover effects
+        reportButton.setOnMouseEntered(e -> 
+            reportButton.setStyle(
+                "-fx-background-color: #2980b9;" +
+                "-fx-text-fill: white;" +
+                "-fx-font-weight: bold;" +
+                "-fx-background-radius: 8;" +
+                "-fx-cursor: hand;" +
+                "-fx-font-size: 14px;"
+            )
+        );
+
+        reportButton.setOnMouseExited(e -> 
+            reportButton.setStyle(
+                "-fx-background-color: #3498db;" +
+                "-fx-text-fill: white;" +
+                "-fx-font-weight: bold;" +
+                "-fx-background-radius: 8;" +
+                "-fx-cursor: hand;" +
+                "-fx-font-size: 14px;"
+            )
+        );
+
+        // Handle button click - navigate to report view with selected city
+        reportButton.setOnAction(e -> {
+            String selectedCity = cityDropdown.getValue();
+            if (selectedCity == null || selectedCity.equals("All Districts")) {
+                selectedCity = "Dhaka"; // Default to Dhaka
+            }
+            System.out.println("Navigating to Report View for city: " + selectedCity);
+            mainController.showReportView();
+        });
+
+        reportContent.getChildren().addAll(reportText, subText, reportButton);
+
+        card.getChildren().addAll(header, reportContent);
         return card;
     }
 }

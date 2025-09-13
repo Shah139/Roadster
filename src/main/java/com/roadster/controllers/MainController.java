@@ -26,6 +26,7 @@ public class MainController {
     private MapsController mapsController; // Reference to the maps controller
     private PoliceBoxView policeBoxView;
     private UserProfileView userProfileView;
+    private ReportView reportView;
     
     @FXML
     public void initialize() {
@@ -35,6 +36,7 @@ public class MainController {
         driversView = new DriversView(this);
         policeBoxView = new PoliceBoxView(this);
         userProfileView = new UserProfileView(this);
+        reportView = new ReportView(this);
 
         // Initialize FXML-based maps view
         initializeMapsView();
@@ -90,6 +92,11 @@ public class MainController {
         mainContainer.setCenter(userProfileView);
     }
     
+    @FXML
+    public void showReportView() {
+        mainContainer.setCenter(reportView);
+    }
+    
     /**
      * Refresh all views after successful login to update user info
      */
@@ -99,6 +106,7 @@ public class MainController {
         userProfileView = new UserProfileView(this);
         driversView = new DriversView(this);
         policeBoxView = new PoliceBoxView(this);
+        reportView = new ReportView(this);
         
         System.out.println("Views refreshed after login with correct user information");
     }

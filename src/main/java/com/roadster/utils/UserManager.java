@@ -244,11 +244,11 @@ public class UserManager {
             
             for (int i = 1; i < lines.size(); i++) { // Skip header
                 String[] parts = lines.get(i).split(",");
-                if (parts.length >= 5 && parts[1].equals(currentUser.getEmail())) {
-                    // Verify current password
-                    if (parts[2].equals(encodePassword(currentPassword))) {
+                if (parts.length >= 5 && parts[0].equals(currentUser.getEmail())) {
+                    // Verify current password (password is in index 1)
+                    if (parts[1].equals(encodePassword(currentPassword))) {
                         // Update password
-                        parts[2] = encodePassword(newPassword);
+                        parts[1] = encodePassword(newPassword);
                         lines.set(i, String.join(",", parts));
                         updated = true;
                         break;

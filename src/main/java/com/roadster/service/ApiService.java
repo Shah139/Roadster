@@ -492,4 +492,112 @@ public class ApiService {
             return fallbackData;
         }
     }
+
+    // ==================== AREA CRIME RATE METHODS ====================
+
+    /**
+     * Fetches crime rates by area for a specific district
+     * @param district The district to get area crime rate data for
+     * @return List of Map containing area crime rate data
+     */
+    public static List<Map<String, Object>> fetchAreaCrimeRatesByDistrict(String district) throws Exception {
+        try {
+            String apiUrl = API_URL + "crime-rates/" + district;
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(apiUrl))
+                    .header("ngrok-skip-browser-warning", "true")
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() != 200 || !response.body().trim().startsWith("[")) {
+                // Return fallback data if API is not available or returns non-JSON
+                return getAreaCrimeRatesFallbackData();
+            }
+
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(response.body(), new TypeReference<List<Map<String, Object>>>() {});
+        } catch (Exception e) {
+            System.err.println("API error for area crime rates, using fallback data: " + e.getMessage());
+            return getAreaCrimeRatesFallbackData();
+        }
+    }
+
+    private static List<Map<String, Object>> getAreaCrimeRatesFallbackData() {
+        List<Map<String, Object>> fallbackData = new ArrayList<>();
+        
+        // Sample areas with crime rates (Dhaka areas as example)
+        String[][] areas = {
+            {"Mirpur", "0.15"}, {"Pallabi", "0.12"}, {"Kafrul", "0.13"}, {"Tejgaon", "0.18"},
+            {"Gulshan", "0.05"}, {"Cantonment", "0.04"}, {"Badda", "0.1"}, {"Khilkhet", "0.09"},
+            {"Dhanmondi", "0.14"}, {"Shahbagh", "0.16"}, {"New Market", "0.15"}, {"Lalbagh", "0.17"},
+            {"Motijheel", "0.2"}, {"Ramna", "0.19"}, {"Jatrabari", "0.18"}, {"Uttara", "0.1"},
+            {"Mohammadpur", "0.16"}, {"Adabor", "0.14"}, {"Shah Ali", "0.11"}, {"Darus-Salam", "0.12"}
+        };
+
+        for (String[] area : areas) {
+            Map<String, Object> crimeRate = new HashMap<>();
+            crimeRate.put("name", area[0]);
+            crimeRate.put("crimeRate", Double.parseDouble(area[1]));
+            fallbackData.add(crimeRate);
+        }
+
+        return fallbackData;
+    }
+
+    // ==================== AREA CONGESTION METHODS ====================
+
+    /**
+     * Fetches area congestion levels for a specific district
+     * @param district The district to get area congestion data for
+     * @return List of Map containing area congestion data
+     */
+    public static List<Map<String, Object>> fetchAreaCongestionByDistrict(String district) throws Exception {
+        try {
+            String apiUrl = API_URL + "area-congestion/" + district;
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(apiUrl))
+                    .header("ngrok-skip-browser-warning", "true")
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() != 200 || !response.body().trim().startsWith("[")) {
+                // Return fallback data if API is not available or returns non-JSON
+                return getAreaCongestionFallbackData();
+            }
+
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(response.body(), new TypeReference<List<Map<String, Object>>>() {});
+        } catch (Exception e) {
+            System.err.println("API error for area congestion, using fallback data: " + e.getMessage());
+            return getAreaCongestionFallbackData();
+        }
+    }
+
+    private static List<Map<String, Object>> getAreaCongestionFallbackData() {
+        List<Map<String, Object>> fallbackData = new ArrayList<>();
+        
+        // Sample areas with congestion levels (Dhaka areas as example)
+        String[][] areas = {
+            {"Mirpur", "0.8"}, {"Pallabi", "0.7"}, {"Kafrul", "0.75"}, {"Tejgaon", "0.9"},
+            {"Gulshan", "0.6"}, {"Cantonment", "0.5"}, {"Badda", "0.7"}, {"Khilkhet", "0.65"},
+            {"Dhanmondi", "0.8"}, {"Shahbagh", "0.9"}, {"New Market", "0.85"}, {"Lalbagh", "0.95"},
+            {"Motijheel", "1.0"}, {"Ramna", "0.9"}, {"Jatrabari", "0.85"}, {"Uttara", "0.6"},
+            {"Mohammadpur", "0.8"}, {"Adabor", "0.75"}, {"Shah Ali", "0.6"}, {"Darus-Salam", "0.7"}
+        };
+
+        for (String[] area : areas) {
+            Map<String, Object> congestion = new HashMap<>();
+            congestion.put("name", area[0]);
+            congestion.put("congestionLevel", area[1]);
+            fallbackData.add(congestion);
+        }
+
+        return fallbackData;
+    }
 }
