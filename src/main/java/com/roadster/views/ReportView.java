@@ -2,6 +2,8 @@ package com.roadster.views;
 
 import com.roadster.components.SideBar;
 import com.roadster.controllers.MainController;
+import com.roadster.service.ApiService;
+import com.roadster.models.Report;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -12,6 +14,10 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.concurrent.Task;
+import javafx.application.Platform;
+import java.io.StringWriter;
+import java.io.PrintWriter;
 
 public class ReportView extends HBox {
 
@@ -21,11 +27,11 @@ public class ReportView extends HBox {
     private String selectedCity;
     
     // Form components
-    private ComboBox<String> incidentTypeCombo;
-    private TextField locationField;
-    private TextArea descriptionArea;
-    private ComboBox<String> urgencyCombo;
-    private CheckBox anonymousCheck;
+    private ComboBox<String> incidentTypeCombo;  // Maps to reportType
+    private TextField locationField;             // Maps to locationName (query param)
+    private TextArea descriptionArea;            // Maps to description
+    private ComboBox<String> statusCombo;        // Maps to status
+    private TextField districtField;             // Maps to district (query param)
     private Button submitButton;
 
     public ReportView(MainController mainController) {
@@ -60,8 +66,8 @@ public class ReportView extends HBox {
         incidentTypeCombo = new ComboBox<>();
         locationField = new TextField();
         descriptionArea = new TextArea();
-        urgencyCombo = new ComboBox<>();
-        anonymousCheck = new CheckBox("Report anonymously");
+        statusCombo = new ComboBox<>();
+        districtField = new TextField();
         submitButton = new Button("Submit Report");
         
         setupFormComponents();
@@ -85,16 +91,7 @@ public class ReportView extends HBox {
         incidentTypeCombo.setPromptText("Select incident type");
         incidentTypeCombo.setPrefWidth(300);
         
-        // Urgency levels
-        ObservableList<String> urgencyLevels = FXCollections.observableArrayList(
-            "Low - Minor issue, can wait",
-            "Medium - Should be addressed soon",
-            "High - Requires immediate attention",
-            "Emergency - Life threatening situation"
-        );
-        urgencyCombo.setItems(urgencyLevels);
-        urgencyCombo.setPromptText("Select urgency level");
-        urgencyCombo.setPrefWidth(300);
+
         
         // Location field
         locationField.setPromptText("Enter specific location or landmark");
@@ -105,6 +102,23 @@ public class ReportView extends HBox {
         descriptionArea.setPrefRowCount(5);
         descriptionArea.setPrefWidth(300);
         descriptionArea.setWrapText(true);
+        
+        // Status combo
+        ObservableList<String> statusOptions = FXCollections.observableArrayList(
+            "PENDING",
+            "IN_PROGRESS", 
+            "RESOLVED",
+            "REJECTED"
+        );
+        statusCombo.setItems(statusOptions);
+        statusCombo.setPromptText("Select status");
+        statusCombo.setPrefWidth(300);
+        statusCombo.setValue("PENDING"); // Default to PENDING
+        
+        // District field
+        districtField.setPromptText("Enter district name");
+        districtField.setPrefWidth(300);
+        districtField.setText(selectedCity); // Pre-fill with selected city
         
         // Submit button styling
         submitButton.setPrefWidth(200);
@@ -169,15 +183,10 @@ public class ReportView extends HBox {
         
         // Form fields with labels
         VBox typeSection = createFormField("Incident Type *", incidentTypeCombo);
-        VBox locationSection = createFormField("Location *", locationField);
-        VBox urgencySection = createFormField("Urgency Level *", urgencyCombo);
+        VBox locationSection = createFormField("Location Name *", locationField);
+        VBox districtSection = createFormField("District *", districtField);
         VBox descriptionSection = createFormField("Description *", descriptionArea);
-        
-        // Anonymous checkbox section
-        VBox checkSection = new VBox(5);
-        checkSection.setAlignment(Pos.CENTER_LEFT);
-        anonymousCheck.setStyle("-fx-text-fill: #2c3e50; -fx-font-size: 14px;");
-        checkSection.getChildren().add(anonymousCheck);
+        VBox statusSection = createFormField("Status *", statusCombo);
         
         // Button section
         VBox buttonSection = new VBox(10);
@@ -190,8 +199,7 @@ public class ReportView extends HBox {
         buttonSection.getChildren().addAll(note, submitButton);
         
         formSection.getChildren().addAll(
-            typeSection, locationSection, urgencySection, 
-            descriptionSection, checkSection, buttonSection
+            typeSection, locationSection, districtSection, descriptionSection, statusSection, buttonSection
         );
         
         return formSection;
@@ -256,17 +264,73 @@ public class ReportView extends HBox {
         if (!validateForm()) {
             return;
         }
-        
-        // Get form data
-        String incidentType = incidentTypeCombo.getValue();
-        String location = locationField.getText().trim();
-        
-        // For now, just show a success message
-        // In a real app, you would send this to your API with all form data
-        showSuccessDialog(incidentType, location);
-        
-        // Clear form
-        clearForm();
+
+        // Get form data (all fields for backend)
+        String reportType = incidentTypeCombo.getValue();          // Request body: reportType
+        String locationName = locationField.getText().trim();      // Query parameter: locationName
+        String district = districtField.getText().trim();          // Query parameter: district
+        String description = descriptionArea.getText().trim();     // Request body: description
+        String status = statusCombo.getValue();                    // Request body: status
+        // timestamp will be auto-generated in backend
+
+        // Show progress indicator
+        Alert progressAlert = new Alert(Alert.AlertType.INFORMATION);
+        progressAlert.setTitle("Submitting Report");
+        progressAlert.setHeaderText("Please wait...");
+        progressAlert.setContentText("Submitting your report to the database.");
+        progressAlert.show();
+
+        // Debug: Print out all relevant info before submission
+        System.out.println("[DEBUG] Submitting report with:");
+        System.out.println("  ReportType: " + reportType);
+        System.out.println("  LocationName: " + locationName);
+        System.out.println("  District: " + district);
+        System.out.println("  Description: " + description);
+        System.out.println("  Status: " + status);
+
+        // Submit in background thread to avoid blocking UI
+        Task<Report> submitTask = new Task<Report>() {
+            @Override
+            protected Report call() throws Exception {
+                // Debug: Try/catch to print more info if error
+                try {
+                    Report result = ApiService.submitReport(reportType, description, status, locationName, district);
+                    System.out.println("[DEBUG] Report submission successful.");
+                    return result;
+                } catch (Exception ex) {
+                    System.out.println("[DEBUG] Report submission failed: " + ex.getMessage());
+                    ex.printStackTrace();
+                    throw ex;
+                }
+            }
+        };
+
+        submitTask.setOnSucceeded(e -> {
+            Platform.runLater(() -> {
+                progressAlert.close();
+                Report submittedReport = submitTask.getValue();
+                showSuccessDialog(submittedReport);
+                clearForm();
+            });
+        });
+
+        submitTask.setOnFailed(e -> {
+            Platform.runLater(() -> {
+                progressAlert.close();
+                Throwable exception = submitTask.getException();
+                // Debug: Print stack trace in UI error dialog
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                exception.printStackTrace(pw);
+                String stackTrace = sw.toString();
+                showErrorDialog(exception.getMessage() + "\n\nStacktrace:\n" + stackTrace);
+            });
+        });
+
+        // Start the task in a new thread
+        Thread submitThread = new Thread(submitTask);
+        submitThread.setDaemon(true);
+        submitThread.start();
     }
     
     private boolean validateForm() {
@@ -277,15 +341,19 @@ public class ReportView extends HBox {
         }
         
         if (locationField.getText().trim().isEmpty()) {
-            errors.append("• Please enter a location\n");
+            errors.append("• Please enter a location name\n");
         }
         
-        if (urgencyCombo.getValue() == null) {
-            errors.append("• Please select urgency level\n");
+        if (districtField.getText().trim().isEmpty()) {
+            errors.append("• Please enter a district\n");
         }
         
         if (descriptionArea.getText().trim().isEmpty()) {
             errors.append("• Please provide a description\n");
+        }
+        
+        if (statusCombo.getValue() == null) {
+            errors.append("• Please select a status\n");
         }
         
         if (errors.length() > 0) {
@@ -300,24 +368,44 @@ public class ReportView extends HBox {
         return true;
     }
     
-    private void showSuccessDialog(String incidentType, String location) {
+    private void showSuccessDialog(Report submittedReport) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Report Submitted");
+        alert.setTitle("Report Submitted Successfully");
         alert.setHeaderText("Thank you for your report!");
         alert.setContentText(String.format(
-            "Your %s report for %s in %s has been submitted successfully.\n\n" +
-            "Report ID: #RPT-%d\n" +
+            "Your report has been submitted to the database successfully.\n\n" +
+            "Report ID: #%d\n" +
+            "Report Type: %s\n" +
+            "Status: %s\n" +
+            "Timestamp: %s\n\n" +
             "Our team will review it shortly.",
-            incidentType, location, selectedCity, System.currentTimeMillis() % 100000
+            submittedReport.getReportId(),
+            submittedReport.getReportType(),
+            submittedReport.getStatus(),
+            submittedReport.getTimestamp().toString()
         ));
+        alert.showAndWait();
+    }
+    
+    private void showErrorDialog(String errorMessage) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Submission Failed");
+        alert.setHeaderText("Failed to submit your report");
+        alert.setContentText(String.format(
+            "There was an error submitting your report:\n\n%s\n\n" +
+            "Please check your internet connection and try again.",
+            errorMessage
+        ));
+        // Also print to console for debugging
+        System.out.println("[DEBUG] Error dialog shown: " + errorMessage);
         alert.showAndWait();
     }
     
     private void clearForm() {
         incidentTypeCombo.setValue(null);
         locationField.clear();
-        urgencyCombo.setValue(null);
+        districtField.setText(selectedCity); // Reset to selected city
         descriptionArea.clear();
-        anonymousCheck.setSelected(false);
+        statusCombo.setValue("PENDING"); // Reset to default status
     }
 }
